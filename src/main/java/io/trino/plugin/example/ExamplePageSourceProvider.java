@@ -79,7 +79,7 @@ public class ExamplePageSourceProvider
             //TODO build datasource from schema properties?
             ParquetDataSource dataSource = new ParquetFileDataSource(
                     new File(Resources.getResource("numbers.parquet").toURI()),
-                    new ParquetReaderOptions());
+                    ParquetReaderOptions.defaultOptions());
 
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
             ParquetReader reader = createParquetReader(dataSource, parquetMetadata, newSimpleAggregatedMemoryContext(), types, columnNames);

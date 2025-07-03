@@ -20,7 +20,6 @@ import io.trino.spi.session.PropertyMetadata;
 import io.trino.spi.transaction.IsolationLevel;
 
 import java.util.List;
-import java.util.Set;
 
 import static io.trino.plugin.example.ExampleTransactionHandle.INSTANCE;
 import static java.util.Objects.requireNonNull;

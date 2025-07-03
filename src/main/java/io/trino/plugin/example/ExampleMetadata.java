@@ -28,7 +28,6 @@ import io.trino.parquet.reader.MetadataReader;
 import io.trino.plugin.example.parquet.ParquetFileDataSource;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.*;
-import io.trino.spi.predicate.Domain;
 import io.trino.spi.statistics.TableStatistics;
 import io.trino.spi.type.Type;
 import io.trino.spi.type.VarcharType;
@@ -41,7 +40,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 import static io.trino.parquet.ParquetTypeUtils.getColumnIO;
 import static io.trino.plugin.example.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
@@ -115,7 +113,7 @@ public class ExampleMetadata
         try {
             ParquetDataSource dataSource = new ParquetFileDataSource(
                     new File(Resources.getResource("numbers.parquet").toURI()),
-                    new ParquetReaderOptions());
+                    ParquetReaderOptions.defaultOptions());
 
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
             System.out.println(parquetMetadata);

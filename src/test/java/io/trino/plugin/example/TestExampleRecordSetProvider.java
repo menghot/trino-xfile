@@ -43,8 +43,8 @@ public class TestExampleRecordSetProvider {
     @Test
     public void testGetRecordSet() {
         ConnectorTableHandle tableHandle = new ExampleTableHandle("schema", "table");
-        ExampleRecordSetProvider recordSetProvider = new ExampleRecordSetProvider();
-        RecordSet recordSet = recordSetProvider.getRecordSet(ExampleTransactionHandle.INSTANCE, SESSION, new ExampleSplit(dataUri, null), tableHandle, ImmutableList.of(
+        ExampleRecordSetProvider recordSetProvider = new ExampleRecordSetProvider(null);
+        RecordSet recordSet = recordSetProvider.getRecordSet(ExampleTransactionHandle.INSTANCE, SESSION, new ExampleSplit(dataUri, null, null), tableHandle, ImmutableList.of(
                 new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false),
                 new ExampleColumnHandle("value", BIGINT, 1, false)));
         assertThat(recordSet)

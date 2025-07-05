@@ -40,31 +40,31 @@ public class TestExampleRecordSet {
 
     @Test
     public void testGetColumnTypes() {
-        RecordSet recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null), ImmutableList.of(
+        RecordSet recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null, null), ImmutableList.of(
                 new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false),
-                new ExampleColumnHandle("value", BIGINT, 1, false)));
+                new ExampleColumnHandle("value", BIGINT, 1, false)), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of(createUnboundedVarcharType(), BIGINT));
 
-        recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null), ImmutableList.of(
+        recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null, null), ImmutableList.of(
                 new ExampleColumnHandle("value", BIGINT, 1, false),
-                new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false)));
+                new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false)), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of(BIGINT, createUnboundedVarcharType()));
 
-        recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null), ImmutableList.of(
+        recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null, null), ImmutableList.of(
                 new ExampleColumnHandle("value", BIGINT, 1, false),
                 new ExampleColumnHandle("value", BIGINT, 1, false),
-                new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false)));
+                new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false)), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of(BIGINT, BIGINT, createUnboundedVarcharType()));
 
-        recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null), ImmutableList.of());
+        recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null, null), ImmutableList.of(), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of());
     }
 
     @Test
     public void testCursorSimple() {
-        RecordSet recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null), ImmutableList.of(
+        RecordSet recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null, null), ImmutableList.of(
                 new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false),
-                new ExampleColumnHandle("value", BIGINT, 1, false)));
+                new ExampleColumnHandle("value", BIGINT, 1, false)), null);
         RecordCursor cursor = recordSet.cursor();
 
         assertThat(cursor.getType(0)).isEqualTo(createUnboundedVarcharType());
@@ -85,10 +85,10 @@ public class TestExampleRecordSet {
 
     @Test
     public void testCursorMixedOrder() {
-        RecordSet recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null), ImmutableList.of(
+        RecordSet recordSet = new ExampleRecordSet(new ExampleSplit(dataUri, null, null), ImmutableList.of(
                 new ExampleColumnHandle("value", BIGINT, 1, false),
                 new ExampleColumnHandle("value", BIGINT, 1, false),
-                new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false)));
+                new ExampleColumnHandle("text", createUnboundedVarcharType(), 0, false)), null);
         RecordCursor cursor = recordSet.cursor();
 
         Map<String, Long> data = new LinkedHashMap<>();

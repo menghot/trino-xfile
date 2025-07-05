@@ -17,9 +17,19 @@ import com.google.common.collect.ImmutableList;
 import io.trino.spi.connector.*;
 
 import java.util.List;
+import java.util.Map;
+
 
 public class ExampleRecordSetProvider
         implements ConnectorRecordSetProvider {
+
+    private final ExampleFileSystemFactory fileSystemFactory;
+
+    public ExampleRecordSetProvider(ExampleFileSystemFactory fileSystemFactory) {
+        this.fileSystemFactory = fileSystemFactory;
+    }
+
+
     @Override
     public RecordSet getRecordSet(ConnectorTransactionHandle transaction, ConnectorSession session, ConnectorSplit split, ConnectorTableHandle table, List<? extends ColumnHandle> columns) {
         ExampleSplit exampleSplit = (ExampleSplit) split;
@@ -29,6 +39,6 @@ public class ExampleRecordSetProvider
             handles.add((ExampleColumnHandle) handle);
         }
 
-        return new ExampleRecordSet(exampleSplit, handles.build());
+        return new ExampleRecordSet(exampleSplit, handles.build(), fileSystemFactory.create(session.getIdentity(), Map.of()));
     }
 }

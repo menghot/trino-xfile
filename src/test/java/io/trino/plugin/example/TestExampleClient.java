@@ -35,7 +35,7 @@ public class TestExampleClient {
                 .describedAs("metadataUrl is null")
                 .isNotNull();
         URI metadata = metadataUrl.toURI();
-        ExampleClient client = new ExampleClient(new ExampleConfig().setMetadata(metadata), CATALOG_CODEC);
+        ExampleClient client = new ExampleClient(new ExampleConfig().setMetadataUri(metadata), CATALOG_CODEC);
         assertThat(client.getSchemaNames()).isEqualTo(ImmutableSet.of("example", "tpch"));
         assertThat(client.getTableNames("example")).isEqualTo(ImmutableSet.of("numbers"));
         assertThat(client.getTableNames("tpch")).isEqualTo(ImmutableSet.of("orders", "lineitem"));

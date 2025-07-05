@@ -13,18 +13,18 @@
  */
 package io.trino.plugin.example;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.io.ByteSource;
 import com.google.common.io.CountingInputStream;
+import com.opencsv.CSVReader;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
+import io.trino.filesystem.TrinoFileSystem;
+import io.trino.plugin.example.utils.ExampleSplitUtils;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.type.DecimalType;
 import io.trino.spi.type.Type;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,40 +34,26 @@ import static io.trino.spi.type.BigintType.BIGINT;
 import static io.trino.spi.type.BooleanType.BOOLEAN;
 import static io.trino.spi.type.DoubleType.DOUBLE;
 import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class ExampleRecordCursor
+public class CsvRecordCursor
         implements RecordCursor {
-    private static final Splitter LINE_SPLITTER = Splitter.on(",").trimResults();
 
     private final List<ExampleColumnHandle> columnHandles;
-    private final int[] fieldToColumnIndex;
+    private final ExampleSplit exampleSplit;
 
-    private final Iterator<String> lines;
-    private final long totalBytes;
+    private CountingInputStream countingInputStream;
+    private Iterator<String[]> lineIterator;
+    private CSVReader csvReader;
+    private String[] fields;
 
-    private List<String> fields;
-
-    public ExampleRecordCursor(List<ExampleColumnHandle> columnHandles, ByteSource byteSource) {
+    public CsvRecordCursor(List<ExampleColumnHandle> columnHandles, ExampleSplit exampleSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
-
-        fieldToColumnIndex = new int[columnHandles.size()];
-        for (int i = 0; i < columnHandles.size(); i++) {
-            ExampleColumnHandle columnHandle = columnHandles.get(i);
-            fieldToColumnIndex[i] = columnHandle.getOrdinalPosition();
-        }
-
-        try (CountingInputStream input = new CountingInputStream(byteSource.openStream())) {
-            lines = byteSource.asCharSource(UTF_8).readLines().iterator();
-            totalBytes = input.getCount();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        this.exampleSplit = exampleSplit;
     }
 
     @Override
     public long getCompletedBytes() {
-        return totalBytes;
+        return countingInputStream.getCount();
     }
 
     @Override
@@ -83,20 +69,31 @@ public class ExampleRecordCursor
 
     @Override
     public boolean advanceNextPosition() {
-        if (!lines.hasNext()) {
-            return false;
+        // 1. Init reader
+        if (csvReader == null) {
+            countingInputStream = new CountingInputStream(ExampleSplitUtils.readInputStream(null, exampleSplit));
+            csvReader = new CSVReader(new InputStreamReader(countingInputStream));
+            lineIterator = csvReader.iterator();
         }
-        String line = lines.next();
-        fields = LINE_SPLITTER.splitToList(line);
+
+        // 2. skip rows
+        int skipRows = 1;
+        while (skipRows-- >= 0 && lineIterator.hasNext()) {
+            lineIterator.next();
+        }
+
+        if (!lineIterator.hasNext()) {
+            return false;
+        } else {
+            fields = lineIterator.next();
+        }
 
         return true;
     }
 
     private String getFieldValue(int field) {
-        checkState(fields != null, "Cursor has not been advanced yet");
-
-        int columnIndex = fieldToColumnIndex[field];
-        return fields.get(columnIndex);
+        checkState(fields != null, "Dataset has not been advanced yet");
+        return fields[columnHandles.get(field).getOrdinalPosition()];
     }
 
     @Override
@@ -127,7 +124,6 @@ public class ExampleRecordCursor
     public Object getObject(int field) {
         Type actual = getType(field);
         if (actual instanceof DecimalType decimalType) {
-            //return new SqlDecimal((BigInteger) field, decimalType.getPrecision(), decimalType.getScale());
         }
         throw new UnsupportedOperationException();
     }
@@ -142,41 +138,6 @@ public class ExampleRecordCursor
         Type actual = getType(field);
         checkArgument(actual.equals(expected), "Expected field %s to be type %s but is %s", field, expected, actual);
     }
-
-//    private static Object getActualCursorValue(RecordCursor cursor, Type type, int field)
-//    {
-//        Object fieldFromCursor = getFieldFromCursor(cursor, type, field);
-//        if (fieldFromCursor == null) {
-//            return null;
-//        }
-//        if (isStructuralType(type)) {
-//            if (type instanceof ArrayType arrayType) {
-//                return toArrayValue((Block) fieldFromCursor, arrayType.getElementType());
-//            }
-//            if (type instanceof MapType mapType) {
-//                return toMapValue((SqlMap) fieldFromCursor, mapType.getKeyType(), mapType.getValueType());
-//            }
-//            if (type instanceof RowType) {
-//                return toRowValue((Block) fieldFromCursor, type.getTypeParameters());
-//            }
-//        }
-//        if (type instanceof DecimalType decimalType) {
-//            return new SqlDecimal((BigInteger) fieldFromCursor, decimalType.getPrecision(), decimalType.getScale());
-//        }
-//        if (type instanceof VarcharType) {
-//            return new String(((Slice) fieldFromCursor).getBytes(), UTF_8);
-//        }
-//        if (VARBINARY.equals(type)) {
-//            return new SqlVarbinary(((Slice) fieldFromCursor).getBytes());
-//        }
-//        if (DATE.equals(type)) {
-//            return new SqlDate(((Long) fieldFromCursor).intValue());
-//        }
-//        if (TIMESTAMP_MILLIS.equals(type)) {
-//            return SqlTimestamp.fromMillis(3, (long) fieldFromCursor);
-//        }
-//        return fieldFromCursor;
-//    }
 
     @Override
     public void close() {

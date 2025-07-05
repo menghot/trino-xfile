@@ -33,14 +33,14 @@ public class ExampleConnector
 
     @Inject
     public ExampleConnector(
+            ExampleFileSystemFactory exampleFileSystemFactory,
             LifeCycleManager lifeCycleManager,
             ExampleMetadata metadata,
-            ExampleSplitManager splitManager,
-            ExampleRecordSetProvider recordSetProvider) {
+            ExampleSplitManager splitManager) {
         this.lifeCycleManager = requireNonNull(lifeCycleManager, "lifeCycleManager is null");
         this.metadata = requireNonNull(metadata, "metadata is null");
         this.splitManager = requireNonNull(splitManager, "splitManager is null");
-        this.pageSourceProvider = new ExamplePageSourceProvider(recordSetProvider);
+        this.pageSourceProvider = new ExamplePageSourceProvider(exampleFileSystemFactory);
     }
 
     @Override
@@ -71,5 +71,10 @@ public class ExampleConnector
     @Override
     public List<PropertyMetadata<?>> getTableProperties() {
         return new ExampleTableProperties().getTableProperties();
+    }
+
+    @Override
+    public List<PropertyMetadata<?>> getSchemaProperties() {
+        return Connector.super.getSchemaProperties();
     }
 }

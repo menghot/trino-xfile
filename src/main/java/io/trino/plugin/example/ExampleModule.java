@@ -17,6 +17,7 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Scopes;
 
+import static com.google.inject.multibindings.OptionalBinder.newOptionalBinder;
 import static io.airlift.configuration.ConfigBinder.configBinder;
 import static io.airlift.json.JsonCodec.listJsonCodec;
 import static io.airlift.json.JsonCodecBinder.jsonCodecBinder;
@@ -29,8 +30,9 @@ public class ExampleModule
         binder.bind(ExampleMetadata.class).in(Scopes.SINGLETON);
         binder.bind(ExampleClient.class).in(Scopes.SINGLETON);
         binder.bind(ExampleSplitManager.class).in(Scopes.SINGLETON);
-        binder.bind(ExampleRecordSetProvider.class).in(Scopes.SINGLETON);
         configBinder(binder).bindConfig(ExampleConfig.class);
+
+        newOptionalBinder(binder, ExampleFileSystemFactory.class).setDefault().to(DefaultExampleFileSystemFactory.class).in(Scopes.SINGLETON);
 
         jsonCodecBinder(binder).bindMapJsonCodec(String.class, listJsonCodec(ExampleTable.class));
     }

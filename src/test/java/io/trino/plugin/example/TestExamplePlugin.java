@@ -33,8 +33,21 @@ public class TestExamplePlugin {
             try {
                 URL metadataUrl = Resources.getResource(TestExampleClient.class, "/example-data/example-metadata-http.json");
                 queryRunner.installPlugin(new ExamplePlugin());
-                queryRunner.createCatalog("example", "example_http", ImmutableMap.of("metadata-uri", metadataUrl.toURI().toString()));
-                queryRunner.createCatalog("example_simon", "example_http", ImmutableMap.of("metadata-uri", metadataUrl.toURI().toString()));
+
+                //queryRunner.createCatalog("example", "example_http", ImmutableMap.of("metadata-uri", metadataUrl.toURI().toString()));
+                queryRunner.createCatalog("example", "example_http",
+                        ImmutableMap.of(
+                                "metadata-uri", metadataUrl.toURI().toString(),
+                                "fs.native-s3.enabled", "true",  // support multiple file system
+                                "s3.aws-access-key", "nDu2sEEwRzEqshz4L0dH",
+                                "s3.aws-secret-key", "d70ZQaHihIpnMAloRXIrTTl8gtj57jS88ewXhjAP",
+                                "s3.endpoint", "http://192.168.80.241:9000",
+                                "s3.path-style-access", "true",
+                                "s3.region", "dummy",
+                                "fs.native-local.enabled" , "true",  // support multiple file system
+                                "local.location" , "/Users/simon/workspaces/trino-xfile/src/test/resources"
+                        )
+                );
             } catch (Throwable e) {
                 Closables.closeAllSuppress(e, queryRunner);
                 throw e;
@@ -52,7 +65,8 @@ public class TestExamplePlugin {
 
         QueryRunner queryRunner = builder()
                 .addCoordinatorProperty("http-server.http.port", "8082")
-                .setWorkerCount(2)
+                .addCoordinatorProperty("node-scheduler.include-coordinator", "true")
+                .setWorkerCount(0)
                 .build();
 
         Logger log = Logger.get(TestExamplePlugin.class);

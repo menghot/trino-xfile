@@ -18,10 +18,19 @@ import com.google.inject.Injector;
 import io.airlift.bootstrap.Bootstrap;
 import io.airlift.configuration.AbstractConfigurationAwareModule;
 import io.airlift.json.JsonModule;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
+import io.trino.filesystem.manager.FileSystemModule;
 import io.trino.plugin.base.TypeDeserializerModule;
+import io.trino.spi.NodeManager;
+import io.trino.spi.PageIndexerFactory;
+import io.trino.spi.PageSorter;
+import io.trino.spi.catalog.CatalogName;
+import io.trino.spi.connector.CatalogHandle;
 import io.trino.spi.connector.Connector;
 import io.trino.spi.connector.ConnectorContext;
 import io.trino.spi.connector.ConnectorFactory;
+import io.trino.spi.type.TypeManager;
 
 import java.util.Map;
 
@@ -44,7 +53,15 @@ public class ExampleConnectorFactory
         Bootstrap app = new Bootstrap(
                 new JsonModule(),
                 new TypeDeserializerModule(context.getTypeManager()),
-                new ExampleFileSystemModule(catalogName),
+                new ExampleFileSystemModule(catalogName, context),
+
+                binder -> {
+                    binder.bind(OpenTelemetry.class).toInstance(context.getOpenTelemetry());
+                    binder.bind(Tracer.class).toInstance(context.getTracer());
+                    binder.bind(NodeManager.class).toInstance(context.getNodeManager());
+                    binder.bind(CatalogName.class).toInstance(new CatalogName(catalogName));
+                },
+
                 new ExampleModule());
 
         Injector injector = app
@@ -57,15 +74,19 @@ public class ExampleConnectorFactory
 
     public static class ExampleFileSystemModule extends AbstractConfigurationAwareModule {
         private final String catalogName;
+        private final NodeManager nodeManager;
+        private final OpenTelemetry openTelemetry;
 
-        public ExampleFileSystemModule(String catalogName) {
+        public ExampleFileSystemModule(String catalogName, ConnectorContext context) {
             this.catalogName = requireNonNull(catalogName, "catalogName is null");
-            System.out.println(this.catalogName);
+            this.nodeManager = context.getNodeManager();
+            this.openTelemetry = context.getOpenTelemetry();
         }
 
         @Override
         protected void setup(Binder binder) {
             System.out.println(catalogName);
+            install(new FileSystemModule(catalogName, nodeManager, openTelemetry, true));
         }
     }
 }

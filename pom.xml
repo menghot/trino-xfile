@@ -24,6 +24,7 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -32,6 +33,12 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.11.2</version>
         </dependency>
 
         <dependency>
@@ -48,9 +55,20 @@
             <groupId>io.airlift</groupId>
             <artifactId>json</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.trino</groupId>
             <artifactId>trino-filesystem</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-filesystem-manager</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.trino</groupId>
+            <artifactId>trino-filesystem-s3</artifactId>
         </dependency>
 
         <dependency>

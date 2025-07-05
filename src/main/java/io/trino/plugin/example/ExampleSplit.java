@@ -32,17 +32,29 @@ import static java.util.Objects.requireNonNull;
 public class ExampleSplit
         implements ConnectorSplit {
     private static final int INSTANCE_SIZE = instanceSize(ExampleSplit.class);
-
     private final String uri;
-    private final Map<String, String> splitInfo;
+    private final Map<String, String> splitInfos;
     private final List<HostAddress> addresses;
+
+    @JsonProperty
+    public ExampleTable getExampleTable() {
+        return exampleTable;
+    }
+
+    public Map<String, String> getSplitInfos() {
+        return splitInfos;
+    }
+
+    private final ExampleTable exampleTable;
 
     @JsonCreator
     public ExampleSplit(
             @JsonProperty("uri") String uri,
-            @JsonProperty("properties") Map<String, String> splitInfo) {
+            @JsonProperty("properties") Map<String, String> splitInfo,
+            @JsonProperty("table") ExampleTable exampleTable) {
         this.uri = requireNonNull(uri, "uri is null");
-        this.splitInfo = Objects.requireNonNullElseGet(splitInfo, HashMap::new);
+        this.splitInfos = Objects.requireNonNullElseGet(splitInfo, HashMap::new);
+        this.exampleTable = exampleTable;
         addresses = ImmutableList.of(HostAddress.fromUri(URI.create(uri)));
     }
 
@@ -54,11 +66,6 @@ public class ExampleSplit
     @Override
     public List<HostAddress> getAddresses() {
         return addresses;
-    }
-
-    @Override
-    public Map<String, String> getSplitInfo() {
-        return splitInfo;
     }
 
     @Override

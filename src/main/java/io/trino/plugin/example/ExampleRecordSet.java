@@ -14,14 +14,11 @@
 package io.trino.plugin.example;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Resources;
+import io.trino.filesystem.TrinoFileSystem;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.connector.RecordSet;
 import io.trino.spi.type.Type;
 
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -30,23 +27,19 @@ public class ExampleRecordSet
         implements RecordSet {
     private final List<ExampleColumnHandle> columnHandles;
     private final List<Type> columnTypes;
-    private final ByteSource byteSource;
+    private final ExampleSplit split;
+    private final TrinoFileSystem trinoFileSystem;
 
-    public ExampleRecordSet(ExampleSplit split, List<ExampleColumnHandle> columnHandles) {
+    public ExampleRecordSet(ExampleSplit split, List<ExampleColumnHandle> columnHandles, TrinoFileSystem trinoFileSystem) {
         requireNonNull(split, "split is null");
-
+        this.split = split;
+        this.trinoFileSystem = trinoFileSystem;
         this.columnHandles = requireNonNull(columnHandles, "columnHandles is null");
         ImmutableList.Builder<Type> types = ImmutableList.builder();
         for (ExampleColumnHandle column : columnHandles) {
             types.add(column.getColumnType());
         }
         this.columnTypes = types.build();
-
-        try {
-            byteSource = Resources.asByteSource(URI.create(split.getUri()).toURL());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -56,6 +49,6 @@ public class ExampleRecordSet
 
     @Override
     public RecordCursor cursor() {
-        return new ExampleRecordCursor(columnHandles, byteSource);
+        return new CsvRecordCursor(columnHandles, split, trinoFileSystem);
     }
 }

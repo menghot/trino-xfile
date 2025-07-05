@@ -51,7 +51,7 @@ public class ExampleSplitSource implements ConnectorSplitSource {
             // build splits
             if (splits.isEmpty()) {
                 for (URI uri : table.getSources()) {
-                    splits.add(new ExampleSplit(uri.toString(), properties));
+                    splits.add(new ExampleSplit(uri.toString(), properties, table));
                 }
             }
 

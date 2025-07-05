@@ -25,7 +25,7 @@ public class TestExampleConfig {
     @Test
     public void testDefaults() {
         assertRecordedDefaults(recordDefaults(ExampleConfig.class)
-                .setMetadata(null));
+                .setMetadataUri(null));
     }
 
     @Test
@@ -33,7 +33,7 @@ public class TestExampleConfig {
         Map<String, String> properties = ImmutableMap.of("metadata-uri", "file://test.json");
 
         ExampleConfig expected = new ExampleConfig()
-                .setMetadata(URI.create("file://test.json"));
+                .setMetadataUri(URI.create("file://test.json"));
 
         assertFullMapping(properties, expected);
     }

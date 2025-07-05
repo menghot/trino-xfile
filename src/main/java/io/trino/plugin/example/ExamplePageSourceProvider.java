@@ -14,6 +14,8 @@
 package io.trino.plugin.example;
 
 import com.google.common.io.Resources;
+import io.trino.filesystem.Location;
+import io.trino.filesystem.TrinoInputFile;
 import io.trino.parquet.ParquetDataSource;
 import io.trino.parquet.ParquetReaderOptions;
 import io.trino.parquet.metadata.ParquetMetadata;
@@ -21,26 +23,32 @@ import io.trino.parquet.reader.MetadataReader;
 import io.trino.parquet.reader.ParquetReader;
 import io.trino.plugin.example.parquet.ParquetFileDataSource;
 import io.trino.plugin.example.parquet.ParquetPageSource;
+import io.trino.plugin.example.parquet.TrinoParquetFileDataSource;
 import io.trino.spi.connector.*;
 import io.trino.spi.type.Type;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.trino.memory.context.AggregatedMemoryContext.newSimpleAggregatedMemoryContext;
 import static io.trino.plugin.example.parquet.ParquetUtils.createParquetReader;
-import static java.util.Objects.requireNonNull;
 
 public class ExamplePageSourceProvider
         implements ConnectorPageSourceProvider {
 
     private final ConnectorRecordSetProvider recordSetProvider;
+    ExampleFileSystemFactory exampleFileSystemFactory;
 
-    public ExamplePageSourceProvider(ConnectorRecordSetProvider recordSetProvider) {
-        this.recordSetProvider = requireNonNull(recordSetProvider, "recordSetProvider is null");
+    public ExamplePageSourceProvider(
+            ExampleFileSystemFactory exampleFileSystemFactory
+    ) {
+        this.exampleFileSystemFactory = exampleFileSystemFactory;
+        this.recordSetProvider = new ExampleRecordSetProvider(exampleFileSystemFactory);
     }
 
     @Override
@@ -52,17 +60,37 @@ public class ExamplePageSourceProvider
             List<ColumnHandle> columns,
             DynamicFilter dynamicFilter) {
 
+
         ExampleSplit exampleSplit = (ExampleSplit) split;
         ExampleTableHandle tableHandle = (ExampleTableHandle) table;
 
         if ( tableHandle.getTableName().endsWith(".parquet")) {
-            return getParquetPageSource(columns);
+
+            TrinoInputFile trinoInputFile =  exampleFileSystemFactory.create(session.getIdentity(), Map.of()).newInputFile(Location.of(tableHandle.getTableName()));
+            try {
+                return getParquetPageSource(columns, new TrinoParquetFileDataSource(trinoInputFile));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+//            //TODO build datasource from schema properties?
+//            ParquetDataSource dataSource = null;
+//            try {
+//                dataSource = new ParquetFileDataSource(
+//                        new File(Resources.getResource("numbers.parquet").toURI()),
+//                        ParquetReaderOptions.defaultOptions());
+//            } catch (FileNotFoundException e) {
+//                throw new RuntimeException(e);
+//            } catch (URISyntaxException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//            return getParquetPageSource(columns, dataSource);
         }
 
         return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, exampleSplit, tableHandle, columns));
     }
 
-    private static ParquetPageSource getParquetPageSource(List<ColumnHandle> columns) {
+    private static ParquetPageSource getParquetPageSource(List<ColumnHandle> columns, ParquetDataSource dataSource) {
 
         List<String> columnNames = columns.stream().map((columnHandle) -> {
             ExampleColumnHandle c = (ExampleColumnHandle) columnHandle;
@@ -75,20 +103,11 @@ public class ExamplePageSourceProvider
         }).toList();
 
         try {
-
-            //TODO build datasource from schema properties?
-            ParquetDataSource dataSource = new ParquetFileDataSource(
-                    new File(Resources.getResource("numbers.parquet").toURI()),
-                    ParquetReaderOptions.defaultOptions());
-
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
             ParquetReader reader = createParquetReader(dataSource, parquetMetadata, newSimpleAggregatedMemoryContext(), types, columnNames);
-
             return new ParquetPageSource(reader);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("File URI syntax error", e);
         }
     }
 }

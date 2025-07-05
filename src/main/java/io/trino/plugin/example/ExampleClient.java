@@ -39,14 +39,33 @@ import static java.util.Objects.requireNonNull;
 
 public class ExampleClient implements IExampleClient {
     /**
-     * SchemaName -> (TableName -> TableMetadata)
+     * SchemaName -> (TableName -> ExampleTable)
      */
     private final Supplier<Map<String, Map<String, ExampleTable>>> schemasSupplier;
 
+
+    public Set<ExampleSchema> getSchemas() {
+        return Set.of(
+                new ExampleSchema("s3", Map.of("auto_path","s3://hive/warehouse/ods.db")),
+                new ExampleSchema("local", Map.of("auto_path","local:///")),
+                new ExampleSchema("example", Map.of()),
+                new ExampleSchema("tpch", Map.of()));
+    }
+
+
+    public ExampleSchema getSchema(String name) {
+        return getSchemas().stream().filter(schema -> schema.getName().equals(name)).findFirst().orElse(null);
+    }
+
+
     @Inject
-    public ExampleClient(ExampleConfig config, JsonCodec<Map<String, List<ExampleTable>>> exampleTableList) {
+    public ExampleClient(
+                    ExampleConfig config,
+                    JsonCodec<Map<String,
+                    List<ExampleTable>>> exampleTableList
+    ) {
         requireNonNull(exampleTableList, "exampleTableList is null");
-        schemasSupplier = Suppliers.memoize(schemasSupplier(exampleTableList, config.getMetadata()));
+        schemasSupplier = Suppliers.memoize(schemasSupplier(exampleTableList, config.getMetadataUri()));
     }
 
     @Override

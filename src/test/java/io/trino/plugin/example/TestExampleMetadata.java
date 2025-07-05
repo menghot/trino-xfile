@@ -45,8 +45,8 @@ public class TestExampleMetadata {
         assertThat(metadataUrl)
                 .describedAs("metadataUrl is null")
                 .isNotNull();
-        ExampleClient client = new ExampleClient(new ExampleConfig().setMetadata(metadataUrl.toURI()), CATALOG_CODEC);
-        metadata = new ExampleMetadata(client);
+        ExampleClient client = new ExampleClient(new ExampleConfig().setMetadataUri(metadataUrl.toURI()), CATALOG_CODEC);
+        metadata = new ExampleMetadata(client, null);
     }
 
     @Test

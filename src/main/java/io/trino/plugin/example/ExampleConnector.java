@@ -15,6 +15,7 @@ package io.trino.plugin.example;
 
 import com.google.inject.Inject;
 import io.airlift.bootstrap.LifeCycleManager;
+import io.trino.filesystem.TrinoFileSystemFactory;
 import io.trino.spi.connector.*;
 import io.trino.spi.session.PropertyMetadata;
 import io.trino.spi.transaction.IsolationLevel;
@@ -33,7 +34,7 @@ public class ExampleConnector
 
     @Inject
     public ExampleConnector(
-            ExampleFileSystemFactory exampleFileSystemFactory,
+            TrinoFileSystemFactory exampleFileSystemFactory,
             LifeCycleManager lifeCycleManager,
             ExampleMetadata metadata,
             ExampleSplitManager splitManager) {

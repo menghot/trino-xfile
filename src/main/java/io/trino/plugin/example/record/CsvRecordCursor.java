@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.plugin.example;
+package io.trino.plugin.example.record;
 
 import com.google.common.base.Strings;
 import com.google.common.io.CountingInputStream;
@@ -19,6 +19,8 @@ import com.opencsv.CSVReader;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import io.trino.filesystem.TrinoFileSystem;
+import io.trino.plugin.example.ExampleColumnHandle;
+import io.trino.plugin.example.ExampleSplit;
 import io.trino.plugin.example.utils.ExampleSplitUtils;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.type.DecimalType;

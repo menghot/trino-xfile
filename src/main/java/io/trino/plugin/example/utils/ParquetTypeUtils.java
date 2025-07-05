@@ -1,4 +1,4 @@
-package io.trino.plugin.example.parquet;
+package io.trino.plugin.example.utils;
 
 import io.trino.spi.type.*;
 import org.apache.parquet.schema.GroupType;
@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 public class ParquetTypeUtils {
 
+    private static final TypeOperators defaultTypeOperators = new TypeOperators();
+
     private ParquetTypeUtils() {
     }
-
-    private static final TypeOperators defaultTypeOperators = new TypeOperators();
 
     public static Type convertParquetTypeToTrino(org.apache.parquet.schema.Type type) {
         if (type.isPrimitive()) {

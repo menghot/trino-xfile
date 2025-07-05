@@ -11,24 +11,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.plugin.example;
+package io.trino.plugin.example.record;
 
 import com.google.common.collect.ImmutableList;
+import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.plugin.example.ExampleColumnHandle;
+import io.trino.plugin.example.ExampleSplit;
 import io.trino.spi.connector.*;
 
 import java.util.List;
-import java.util.Map;
 
 
 public class ExampleRecordSetProvider
         implements ConnectorRecordSetProvider {
 
-    private final ExampleFileSystemFactory fileSystemFactory;
+    private final TrinoFileSystemFactory fileSystemFactory;
 
-    public ExampleRecordSetProvider(ExampleFileSystemFactory fileSystemFactory) {
+    public ExampleRecordSetProvider(TrinoFileSystemFactory fileSystemFactory) {
         this.fileSystemFactory = fileSystemFactory;
     }
-
 
     @Override
     public RecordSet getRecordSet(ConnectorTransactionHandle transaction, ConnectorSession session, ConnectorSplit split, ConnectorTableHandle table, List<? extends ColumnHandle> columns) {
@@ -39,6 +40,6 @@ public class ExampleRecordSetProvider
             handles.add((ExampleColumnHandle) handle);
         }
 
-        return new ExampleRecordSet(exampleSplit, handles.build(), fileSystemFactory.create(session.getIdentity(), Map.of()));
+        return new ExampleRecordSet(exampleSplit, handles.build(), fileSystemFactory.create(session));
     }
 }

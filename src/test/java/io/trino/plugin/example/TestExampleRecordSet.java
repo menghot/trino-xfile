@@ -15,6 +15,7 @@ package io.trino.plugin.example;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.trino.plugin.example.record.ExampleRecordSet;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.connector.RecordSet;
 import org.junit.jupiter.api.AfterAll;

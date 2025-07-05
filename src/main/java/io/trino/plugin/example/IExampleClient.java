@@ -1,6 +1,5 @@
 package io.trino.plugin.example;
 
-import java.util.Map;
 import java.util.Set;
 
 public interface IExampleClient {

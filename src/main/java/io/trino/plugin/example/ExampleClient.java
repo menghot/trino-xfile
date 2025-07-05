@@ -44,57 +44,15 @@ public class ExampleClient implements IExampleClient {
     private final Supplier<Map<String, Map<String, ExampleTable>>> schemasSupplier;
 
 
-    public Set<ExampleSchema> getSchemas() {
-        return Set.of(
-                new ExampleSchema("s3", Map.of("auto_path","s3://hive/warehouse/ods.db")),
-                new ExampleSchema("local", Map.of("auto_path","local:///")),
-                new ExampleSchema("example", Map.of()),
-                new ExampleSchema("tpch", Map.of()));
-    }
-
-
-    public ExampleSchema getSchema(String name) {
-        return getSchemas().stream().filter(schema -> schema.getName().equals(name)).findFirst().orElse(null);
-    }
-
-
     @Inject
     public ExampleClient(
-                    ExampleConfig config,
-                    JsonCodec<Map<String,
+            ExampleConfig config,
+            JsonCodec<Map<String,
                     List<ExampleTable>>> exampleTableList
     ) {
         requireNonNull(exampleTableList, "exampleTableList is null");
         schemasSupplier = Suppliers.memoize(schemasSupplier(exampleTableList, config.getMetadataUri()));
     }
-
-    @Override
-    public Set<String> getSchemaNames() {
-        return requireNonNull(schemasSupplier.get()).keySet();
-    }
-
-    @Override
-    public Set<String> getTableNames(String schema) {
-        requireNonNull(schema, "schema is null");
-        Map<String, ExampleTable> tables = requireNonNull(schemasSupplier.get()).get(schema);
-        if (tables == null) {
-            return ImmutableSet.of();
-        }
-        return tables.keySet();
-    }
-
-    @Override
-    public ExampleTable getTable(String schema, String tableName) {
-        requireNonNull(schema, "schema is null");
-        requireNonNull(tableName, "tableName is null");
-        Map<String, ExampleTable> tables = schemasSupplier.get().get(schema);
-        if (tables == null) {
-            return null;
-        }
-        return tables.get(tableName);
-    }
-
-    //============================================================
 
     private static Supplier<Map<String, Map<String, ExampleTable>>> schemasSupplier(JsonCodec<Map<String, List<ExampleTable>>> catalogCodec, URI metadataUri) {
         return () -> {
@@ -127,5 +85,45 @@ public class ExampleClient implements IExampleClient {
             List<URI> sources = ImmutableList.copyOf(transform(table.getSources(), baseUri::resolve));
             return new ExampleTable(table.getName(), table.getColumns(), sources, null);
         };
+    }
+
+    public Set<ExampleSchema> getSchemas() {
+        return Set.of(
+                new ExampleSchema("s3", Map.of("auto_path", "s3://hive/warehouse/ods.db")),
+                new ExampleSchema("local", Map.of("auto_path", "local:///")),
+                new ExampleSchema("example", Map.of()),
+                new ExampleSchema("tpch", Map.of()));
+    }
+
+    //============================================================
+
+    public ExampleSchema getSchema(String name) {
+        return getSchemas().stream().filter(schema -> schema.getName().equals(name)).findFirst().orElse(null);
+    }
+
+    @Override
+    public Set<String> getSchemaNames() {
+        return requireNonNull(schemasSupplier.get()).keySet();
+    }
+
+    @Override
+    public Set<String> getTableNames(String schema) {
+        requireNonNull(schema, "schema is null");
+        Map<String, ExampleTable> tables = requireNonNull(schemasSupplier.get()).get(schema);
+        if (tables == null) {
+            return ImmutableSet.of();
+        }
+        return tables.keySet();
+    }
+
+    @Override
+    public ExampleTable getTable(String schema, String tableName) {
+        requireNonNull(schema, "schema is null");
+        requireNonNull(tableName, "tableName is null");
+        Map<String, ExampleTable> tables = schemasSupplier.get().get(schema);
+        if (tables == null) {
+            return null;
+        }
+        return tables.get(tableName);
     }
 }

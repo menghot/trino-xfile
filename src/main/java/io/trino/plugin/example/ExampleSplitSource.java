@@ -16,13 +16,12 @@ import static io.airlift.json.JsonCodec.jsonCodec;
 
 public class ExampleSplitSource implements ConnectorSplitSource {
 
-    private FixedSplitSource source;
     private final DynamicFilter dynamicFilter;
     private final List<ConnectorSplit> splits;
-
     private final Map<String, String> properties;
     private final ExampleTable table;
     private final ExampleTableHandle exampleTableHandle;
+    private FixedSplitSource source;
 
     public ExampleSplitSource(
             ExampleTable table,

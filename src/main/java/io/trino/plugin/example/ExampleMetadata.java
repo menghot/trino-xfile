@@ -37,19 +37,38 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.trino.parquet.ParquetTypeUtils.getColumnIO;
-import static io.trino.plugin.example.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
+import static io.trino.plugin.example.utils.ParquetTypeUtils.convertParquetTypeToTrino;
 import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
 import static java.util.Objects.requireNonNull;
 
 public class ExampleMetadata
         implements ConnectorMetadata {
     private final ExampleClient exampleClient;
-    private final ExampleFileSystemFactory exampleFileSystemFactory;
+    private final TrinoFileSystemFactory trinoFileSystemFactory;
 
     @Inject
-    public ExampleMetadata(ExampleClient exampleClient, ExampleFileSystemFactory exampleFileSystemFactory) {
+    public ExampleMetadata(ExampleClient exampleClient, TrinoFileSystemFactory trinoFileSystemFactory) {
         this.exampleClient = requireNonNull(exampleClient, "exampleClient is null");
-        this.exampleFileSystemFactory = requireNonNull(exampleFileSystemFactory, "exampleFileSystemFactory is null");
+        this.trinoFileSystemFactory = requireNonNull(trinoFileSystemFactory, "exampleFileSystemFactory is null");
+    }
+
+    private static ConnectorTableMetadata getConnectorTableMetadata(ParquetDataSource dataSource, SchemaTableName tableName) throws IOException {
+        ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
+        System.out.println(parquetMetadata);
+
+        FileMetadata fileMetaData = parquetMetadata.getFileMetaData();
+        MessageType fileSchema = fileMetaData.getSchema();
+
+        MessageColumnIO messageColumnIO = getColumnIO(fileSchema, fileSchema);
+        System.out.println(messageColumnIO);
+
+        ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
+        for (org.apache.parquet.schema.Type field : fileSchema.getFields()) {
+            String name = field.getName();
+            Type trinoType = convertParquetTypeToTrino(field);
+            columnsMetadata.add(new ColumnMetadata(name, trinoType));
+        }
+        return new ConnectorTableMetadata(tableName, columnsMetadata.build());
     }
 
     @Override
@@ -90,10 +109,10 @@ public class ExampleMetadata
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
 
         SchemaTableName tableName = ((ExampleTableHandle) tableHandle).toSchemaTableName();
-        TrinoFileSystem trinoFileSystem = exampleFileSystemFactory.create(session.getIdentity(), Map.of());
+        TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
 
         if (tableName.getTableName().endsWith(".parquet")) {
-           TrinoInputFile trinoInputFile =  trinoFileSystem.newInputFile(Location.of(tableName.getTableName()));
+            TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.getTableName()));
             try {
                 ParquetDataSource dataSource = new TrinoParquetFileDataSource(trinoInputFile);
                 return getConnectorTableMetadata(dataSource, tableName);
@@ -112,25 +131,6 @@ public class ExampleMetadata
         }
 
         return new ConnectorTableMetadata(tableName, table.getColumnsMetadata());
-    }
-
-    private static ConnectorTableMetadata getConnectorTableMetadata(ParquetDataSource dataSource, SchemaTableName tableName) throws IOException {
-            ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
-            System.out.println(parquetMetadata);
-
-            FileMetadata fileMetaData = parquetMetadata.getFileMetaData();
-            MessageType fileSchema = fileMetaData.getSchema();
-
-            MessageColumnIO messageColumnIO = getColumnIO(fileSchema, fileSchema);
-            System.out.println(messageColumnIO);
-
-            ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
-            for (org.apache.parquet.schema.Type field : fileSchema.getFields()) {
-                String name = field.getName();
-                Type trinoType = convertParquetTypeToTrino(field);
-                columnsMetadata.add(new ColumnMetadata(name, trinoType));
-            }
-            return new ConnectorTableMetadata(tableName, columnsMetadata.build());
     }
 
     @Override
@@ -168,9 +168,9 @@ public class ExampleMetadata
 
         if (optionalSchemaName.isPresent() && exampleClient.getSchema(optionalSchemaName.get()) != null) {
             String path = exampleClient.getSchema(optionalSchemaName.get()).getProperties().get("auto_path");
-            if(path != null) {
+            if (path != null) {
                 // Auto discovery file as table
-                TrinoFileSystem trinoFileSystem = exampleFileSystemFactory.create(session.getIdentity(), Map.of());
+                TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
                 try {
                     FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(path));
                     ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();

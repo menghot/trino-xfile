@@ -23,14 +23,10 @@ import io.opentelemetry.api.trace.Tracer;
 import io.trino.filesystem.manager.FileSystemModule;
 import io.trino.plugin.base.TypeDeserializerModule;
 import io.trino.spi.NodeManager;
-import io.trino.spi.PageIndexerFactory;
-import io.trino.spi.PageSorter;
 import io.trino.spi.catalog.CatalogName;
-import io.trino.spi.connector.CatalogHandle;
 import io.trino.spi.connector.Connector;
 import io.trino.spi.connector.ConnectorContext;
 import io.trino.spi.connector.ConnectorFactory;
-import io.trino.spi.type.TypeManager;
 
 import java.util.Map;
 

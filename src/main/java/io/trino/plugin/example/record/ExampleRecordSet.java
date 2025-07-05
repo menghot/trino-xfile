@@ -11,10 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.plugin.example;
+package io.trino.plugin.example.record;
 
 import com.google.common.collect.ImmutableList;
 import io.trino.filesystem.TrinoFileSystem;
+import io.trino.plugin.example.ExampleColumnHandle;
+import io.trino.plugin.example.ExampleSplit;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.connector.RecordSet;
 import io.trino.spi.type.Type;

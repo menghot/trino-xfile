@@ -40,6 +40,13 @@ public class ParquetPageSource
         this.parquetReader = requireNonNull(parquetReader, "parquetReader is null");
     }
 
+    static TrinoException handleException(ParquetDataSourceId dataSourceId, Exception exception) {
+        if (exception instanceof TrinoException trinoException) {
+            return trinoException;
+        }
+        return new TrinoException(() -> new ErrorCode(0, exception.getLocalizedMessage(), ErrorType.EXTERNAL), exception);
+    }
+
     @Override
     public long getCompletedBytes() {
         return parquetReader.getDataSource().getReadBytes();
@@ -101,12 +108,5 @@ public class ParquetPageSource
     @Override
     public Metrics getMetrics() {
         return parquetReader.getMetrics();
-    }
-
-    static TrinoException handleException(ParquetDataSourceId dataSourceId, Exception exception) {
-        if (exception instanceof TrinoException trinoException) {
-            return trinoException;
-        }
-        return new TrinoException(() -> new ErrorCode(0, exception.getLocalizedMessage(), ErrorType.EXTERNAL), exception);
     }
 }

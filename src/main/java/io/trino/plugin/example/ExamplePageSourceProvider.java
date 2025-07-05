@@ -13,81 +13,37 @@
  */
 package io.trino.plugin.example;
 
-import com.google.common.io.Resources;
 import io.trino.filesystem.Location;
+import io.trino.filesystem.TrinoFileSystemFactory;
 import io.trino.filesystem.TrinoInputFile;
 import io.trino.parquet.ParquetDataSource;
-import io.trino.parquet.ParquetReaderOptions;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
 import io.trino.parquet.reader.ParquetReader;
-import io.trino.plugin.example.parquet.ParquetFileDataSource;
 import io.trino.plugin.example.parquet.ParquetPageSource;
 import io.trino.plugin.example.parquet.TrinoParquetFileDataSource;
+import io.trino.plugin.example.record.ExampleRecordSetProvider;
 import io.trino.spi.connector.*;
 import io.trino.spi.type.Type;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static io.trino.memory.context.AggregatedMemoryContext.newSimpleAggregatedMemoryContext;
-import static io.trino.plugin.example.parquet.ParquetUtils.createParquetReader;
+import static io.trino.plugin.example.utils.ParquetUtils.createParquetReader;
 
 public class ExamplePageSourceProvider
         implements ConnectorPageSourceProvider {
 
     private final ConnectorRecordSetProvider recordSetProvider;
-    ExampleFileSystemFactory exampleFileSystemFactory;
+    TrinoFileSystemFactory trinoFileSystemFactory;
 
     public ExamplePageSourceProvider(
-            ExampleFileSystemFactory exampleFileSystemFactory
+            TrinoFileSystemFactory trinoFileSystemFactory
     ) {
-        this.exampleFileSystemFactory = exampleFileSystemFactory;
-        this.recordSetProvider = new ExampleRecordSetProvider(exampleFileSystemFactory);
-    }
-
-    @Override
-    public ConnectorPageSource createPageSource(
-            ConnectorTransactionHandle transaction,
-            ConnectorSession session,
-            ConnectorSplit split,
-            ConnectorTableHandle table,
-            List<ColumnHandle> columns,
-            DynamicFilter dynamicFilter) {
-
-
-        ExampleSplit exampleSplit = (ExampleSplit) split;
-        ExampleTableHandle tableHandle = (ExampleTableHandle) table;
-
-        if ( tableHandle.getTableName().endsWith(".parquet")) {
-
-            TrinoInputFile trinoInputFile =  exampleFileSystemFactory.create(session.getIdentity(), Map.of()).newInputFile(Location.of(tableHandle.getTableName()));
-            try {
-                return getParquetPageSource(columns, new TrinoParquetFileDataSource(trinoInputFile));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-//            //TODO build datasource from schema properties?
-//            ParquetDataSource dataSource = null;
-//            try {
-//                dataSource = new ParquetFileDataSource(
-//                        new File(Resources.getResource("numbers.parquet").toURI()),
-//                        ParquetReaderOptions.defaultOptions());
-//            } catch (FileNotFoundException e) {
-//                throw new RuntimeException(e);
-//            } catch (URISyntaxException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//            return getParquetPageSource(columns, dataSource);
-        }
-
-        return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, exampleSplit, tableHandle, columns));
+        this.trinoFileSystemFactory = trinoFileSystemFactory;
+        this.recordSetProvider = new ExampleRecordSetProvider(trinoFileSystemFactory);
     }
 
     private static ParquetPageSource getParquetPageSource(List<ColumnHandle> columns, ParquetDataSource dataSource) {
@@ -109,5 +65,28 @@ public class ExamplePageSourceProvider
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public ConnectorPageSource createPageSource(
+            ConnectorTransactionHandle transaction,
+            ConnectorSession session,
+            ConnectorSplit split,
+            ConnectorTableHandle table,
+            List<ColumnHandle> columns,
+            DynamicFilter dynamicFilter) {
+
+        ExampleSplit exampleSplit = (ExampleSplit) split;
+        ExampleTableHandle tableHandle = (ExampleTableHandle) table;
+        if (tableHandle.getTableName().endsWith(".parquet")) {
+            TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(tableHandle.getTableName()));
+            try {
+                return getParquetPageSource(columns, new TrinoParquetFileDataSource(trinoInputFile));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, exampleSplit, tableHandle, columns));
     }
 }

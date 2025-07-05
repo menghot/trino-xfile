@@ -1,4 +1,3 @@
-
 package io.trino.plugin.example;
 
 import com.google.common.collect.ImmutableList;
@@ -83,11 +82,11 @@ public class ExampleTableProperties {
                 .build();
     }
 
-    public List<PropertyMetadata<?>> getTableProperties() {
-        return tableProperties;
-    }
-
     public static Optional<String> getTableLocation(Map<String, Object> tableProperties) {
         return Optional.ofNullable((String) tableProperties.get(LOCATION_PROPERTY));
+    }
+
+    public List<PropertyMetadata<?>> getTableProperties() {
+        return tableProperties;
     }
 }

@@ -35,16 +35,6 @@ public class ExampleSplit
     private final String uri;
     private final Map<String, String> splitInfos;
     private final List<HostAddress> addresses;
-
-    @JsonProperty
-    public ExampleTable getExampleTable() {
-        return exampleTable;
-    }
-
-    public Map<String, String> getSplitInfos() {
-        return splitInfos;
-    }
-
     private final ExampleTable exampleTable;
 
     @JsonCreator
@@ -56,6 +46,15 @@ public class ExampleSplit
         this.splitInfos = Objects.requireNonNullElseGet(splitInfo, HashMap::new);
         this.exampleTable = exampleTable;
         addresses = ImmutableList.of(HostAddress.fromUri(URI.create(uri)));
+    }
+
+    @JsonProperty
+    public ExampleTable getExampleTable() {
+        return exampleTable;
+    }
+
+    public Map<String, String> getSplitInfos() {
+        return splitInfos;
     }
 
     @JsonProperty

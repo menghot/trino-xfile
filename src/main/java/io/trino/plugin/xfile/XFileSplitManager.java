@@ -42,9 +42,9 @@ public class XFileSplitManager
         XFileTableHandle tableHandle = (XFileTableHandle) connectorTableHandle;
 
         XFileTable table;
-        if (tableHandle.getTableName().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
+        if (tableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
             table = new XFileTable(tableHandle.getTableName(), List.of(), List.of(URI.create("http://example.com:8080/abc")), Map.of());
-        } else  {
+        } else {
             table = XFileClientDefault.getTable(tableHandle.getSchemaName(), tableHandle.getTableName());
         }
 

@@ -15,13 +15,9 @@ package io.trino.plugin.xfile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
-import io.trino.spi.HostAddress;
 import io.trino.spi.connector.ConnectorSplit;
 
-import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,7 +30,6 @@ public class XFileSplit
     private static final int INSTANCE_SIZE = instanceSize(XFileSplit.class);
     private final String uri;
     private final Map<String, String> splitInfos;
-    private final List<HostAddress> addresses;
     private final XFileTable xFileTable;
 
     @JsonCreator
@@ -45,7 +40,6 @@ public class XFileSplit
         this.uri = requireNonNull(uri, "uri is null");
         this.splitInfos = Objects.requireNonNullElseGet(splitInfo, HashMap::new);
         this.xFileTable = xFileTable;
-        addresses = ImmutableList.of(HostAddress.fromUri(URI.create(uri)));
     }
 
     @JsonProperty
@@ -60,11 +54,6 @@ public class XFileSplit
     @JsonProperty
     public String getUri() {
         return uri;
-    }
-
-    @Override
-    public List<HostAddress> getAddresses() {
-        return addresses;
     }
 
     @Override

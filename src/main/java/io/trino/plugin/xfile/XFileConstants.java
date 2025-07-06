@@ -1,5 +1,6 @@
 package io.trino.plugin.xfile;
 
 public interface XFileConstants {
-    String XFILE_TABLE_NAME_REGEX = "^(local|s3).*\\.(csv|parquet)$";
+    String FILE_TABLE_REGEX = "^(local|s3).*\\.(csv|gz|zip|parquet)$";
+    String FILE_TABLE_CSV_REGEX = "^(local|s3).*\\.(csv|gz|zip)$";
 }

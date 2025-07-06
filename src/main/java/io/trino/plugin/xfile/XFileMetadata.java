@@ -22,7 +22,6 @@ import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.*;
-import io.trino.spi.statistics.TableStatistics;
 import io.trino.spi.type.VarcharType;
 
 import java.io.IOException;
@@ -56,9 +55,8 @@ public class XFileMetadata
     @Override
     public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
 
-        //System.out.println(tableName);
-        if (tableName.getTableName().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
-            //
+        if (tableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+            // Table name starts s3:// or local:// and ends with .csv / .parquet
             return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
         }
 
@@ -81,29 +79,31 @@ public class XFileMetadata
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
 
-        SchemaTableName tableName = ((XFileTableHandle) tableHandle).toSchemaTableName();
-        TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
+        SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).toSchemaTableName();
 
-        // 1. Parquet file
-        if (tableName.getTableName().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
-            if (tableName.getTableName().endsWith(".csv")) {
-                return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, tableName);
+        // 1. Get table metadata from parquet/csv file
+        if (schemaTableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+            TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
+            if (schemaTableName.getTableName().endsWith(".parquet")) {
+                return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, schemaTableName);
+
             }
-            return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, tableName);
+            return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
         }
 
-        // 2. CSV file
-        if (!listSchemaNames().contains(tableName.getSchemaName())) {
+
+        if (!listSchemaNames().contains(schemaTableName.getSchemaName())) {
             return null;
         }
 
-        // 3. Metadata file
-        XFileTable table = xFileClient.getTable(tableName.getSchemaName(), tableName.getTableName());
+
+        XFileTable table = xFileClient.getTable(schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table == null) {
             return null;
         }
 
-        return new ConnectorTableMetadata(tableName, table.getColumnsMetadata());
+        // Get metadata from metadata api
+        return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata());
     }
 
     @Override
@@ -141,17 +141,17 @@ public class XFileMetadata
 
         if (optionalSchemaName.isPresent() && xFileClient.getSchema(optionalSchemaName.get()) != null) {
 
-            // Auto discovery the table if schema has property table_auto_discovery_path
+            // Auto discovery tables if schema has property table_auto_discovery_path
             String path = xFileClient.getSchema(optionalSchemaName.get()).getProperties().get("table_auto_discovery_path");
             if (path != null) {
-                // Auto discovery file as table
+                // Auto discovery files as tables
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
                 try {
                     FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(path));
                     ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
                     while (fileIterator.hasNext()) {
                         FileEntry fileEntry = fileIterator.next();
-                        if (fileEntry.location().toString().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
+                        if (fileEntry.location().toString().matches(XFileConstants.FILE_TABLE_REGEX)) {
                             builder.add(new SchemaTableName(optionalSchemaName.get(), fileEntry.location().toString()));
                         }
                     }
@@ -177,18 +177,18 @@ public class XFileMetadata
     @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle) {
         XFileTableHandle xFileTableHandle = (XFileTableHandle) tableHandle;
-        if (xFileTableHandle.getTableName().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
-            if (xFileTableHandle.getTableName().endsWith(".csv")) {
-                return XFileTableMetadataUtils.getCsvFileColumnHandles(trinoFileSystemFactory.create(session), xFileTableHandle.getTableName());
+        if (xFileTableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+
+            if (xFileTableHandle.getTableName().endsWith(".parquet")) {
+                ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
+                AtomicInteger index = new AtomicInteger();
+                for (ColumnMetadata column : getTableMetadata(session, xFileTableHandle).getColumns()) {
+                    columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
+                }
+                return columnHandles.buildOrThrow();
             }
 
-
-            ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
-            AtomicInteger index = new AtomicInteger();
-            for (ColumnMetadata column : getTableMetadata(session, xFileTableHandle).getColumns()) {
-                columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
-            }
-            return columnHandles.buildOrThrow();
+            return XFileTableMetadataUtils.getCsvFileColumnHandles(trinoFileSystemFactory.create(session), xFileTableHandle.getTableName());
         }
 
         XFileTable table = xFileClient.getTable(xFileTableHandle.getSchemaName(), xFileTableHandle.getTableName());

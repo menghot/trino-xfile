@@ -5,7 +5,6 @@ import io.airlift.slice.Slice;
 import io.trino.spi.connector.*;
 import io.trino.spi.predicate.Domain;
 
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -38,25 +37,17 @@ public class XFileSplitSource implements ConnectorSplitSource {
     @Override
     public synchronized CompletableFuture<ConnectorSplitBatch> getNextBatch(int maxSize) {
         if (source == null) {
+            // 1. Load split from dynamic filter
             extractDynamicFilter();
 
-            if (properties.containsKey("__data_uri")) {
+            // 2. Load split from filter
 
-            } else if (properties.containsKey("")) {
-
+            // 3. Add file table as split
+            if (table.getName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+                splits.add(new XFileSplit(table.getName(), properties, table));
             }
 
-
-            // build splits
-            if (splits.isEmpty()) {
-                splits.add(new XFileSplit("http://example.org", properties, table));
-                //for (URI uri : table.getSources()) {
-                    //splits.add(new XFileSplit(uri.toString(), properties, table));
-                //}
-            }
-
-            //
-
+            // Random splits
             Collections.shuffle(splits);
             source = new FixedSplitSource(splits);
         }

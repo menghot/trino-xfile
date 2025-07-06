@@ -44,7 +44,6 @@ public class XFileCsvRecordCursor
 
     private final List<XFileColumnHandle> columnHandles;
     private final Iterator<String[]> lineIterator;
-    // Processing objects
     private final CountingInputStream countingInputStream;
     private String[] fields;
 

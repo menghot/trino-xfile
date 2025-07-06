@@ -40,8 +40,8 @@ public class XFileTableMetadataUtils {
         if (lineIterator.hasNext()) {
             String[] fields = lineIterator.next();
             for (String field : fields) {
-                String name = field.trim();
-                columnHandles.put(name, new XFileColumnHandle(name, VarcharType.createUnboundedVarcharType(), index.getAndIncrement(), false));
+                String colName = field.trim();
+                columnHandles.put(colName, new XFileColumnHandle(colName, VarcharType.createUnboundedVarcharType(), index.getAndIncrement(), false));
             }
         }
         return columnHandles.buildOrThrow();

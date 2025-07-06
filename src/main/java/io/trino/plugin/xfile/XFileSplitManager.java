@@ -24,11 +24,11 @@ import static java.util.Objects.requireNonNull;
 
 public class XFileSplitManager
         implements ConnectorSplitManager {
-    private final XFileClientDefault XFileClientDefault;
+    private final XFileClientSimple XFileClientSimple;
 
     @Inject
-    public XFileSplitManager(XFileClientDefault XFileClientDefault) {
-        this.XFileClientDefault = requireNonNull(XFileClientDefault, "XFileClientDefault is null");
+    public XFileSplitManager(XFileClientSimple XFileClientSimple) {
+        this.XFileClientSimple = requireNonNull(XFileClientSimple, "XFileClientSimple is null");
     }
 
     @Override
@@ -45,7 +45,7 @@ public class XFileSplitManager
         if (tableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
             table = new XFileTable(tableHandle.getTableName(), List.of(), List.of(URI.create("http://example.com:8080/abc")), Map.of());
         } else {
-            table = XFileClientDefault.getTable(tableHandle.getSchemaName(), tableHandle.getTableName());
+            table = XFileClientSimple.getTable(tableHandle.getSchemaName(), tableHandle.getTableName());
         }
 
         return new XFileSplitSource(table, tableHandle, dynamicFilter);

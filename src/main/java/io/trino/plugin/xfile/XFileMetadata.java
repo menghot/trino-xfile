@@ -22,6 +22,7 @@ import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.*;
+import io.trino.spi.security.TrinoPrincipal;
 import io.trino.spi.type.VarcharType;
 
 import java.io.IOException;
@@ -33,12 +34,12 @@ import static java.util.Objects.requireNonNull;
 
 public class XFileMetadata
         implements ConnectorMetadata {
-    private final XFileClientDefault xFileClient;
+    private final XFileClientSimple xFileClient;
     private final TrinoFileSystemFactory trinoFileSystemFactory;
 
     @Inject
-    public XFileMetadata(XFileClientDefault xFileClient, TrinoFileSystemFactory trinoFileSystemFactory) {
-        this.xFileClient = requireNonNull(xFileClient, "XFileClientDefault is null");
+    public XFileMetadata(XFileClientSimple xFileClient, TrinoFileSystemFactory trinoFileSystemFactory) {
+        this.xFileClient = requireNonNull(xFileClient, "XFileClientSimple is null");
         this.trinoFileSystemFactory = requireNonNull(trinoFileSystemFactory, "exampleFileSystemFactory is null");
     }
 
@@ -142,7 +143,7 @@ public class XFileMetadata
         if (optionalSchemaName.isPresent() && xFileClient.getSchema(optionalSchemaName.get()) != null) {
 
             // Auto discovery tables if schema has property table_auto_discovery_path
-            String path = xFileClient.getSchema(optionalSchemaName.get()).getProperties().get("table_auto_discovery_path");
+            String path = xFileClient.getSchema(optionalSchemaName.get()).getProperties().getOrDefault("table_auto_discovery_path", "").toString();
             if (path != null) {
                 // Auto discovery files as tables
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
@@ -213,5 +214,11 @@ public class XFileMetadata
     @Override
     public ColumnMetadata getColumnMetadata(ConnectorSession session, ConnectorTableHandle tableHandle, ColumnHandle columnHandle) {
         return ((XFileColumnHandle) columnHandle).getColumnMetadata();
+    }
+
+
+    @Override
+    public void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner) {
+        xFileClient.createSchema(session, schemaName, properties, owner);
     }
 }

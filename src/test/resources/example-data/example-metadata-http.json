@@ -1,138 +1,39 @@
 {
-    "s3": [],
-    "local": [],
-    "example": [
+    "schemas" : [
         {
-            "name": "numbers",
-            "columns": [
-                {
-                    "name": "text",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "value",
-                    "type": "BIGINT"
-                }
-            ],
-            "sources": [
-                "http://localhost:8083/example-data/numbers-1.csv",
-                "http://localhost:8083/example-data/numbers-2.csv"
-            ]
-        }
-    ],
-    "tpch": [
-        {
-            "name": "orders",
-            "columns": [
-                {
-                    "name": "orderkey",
-                    "type": "BIGINT"
-                },
-                {
-                    "name": "custkey",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "orderstatus",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "totalprice",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "orderdate",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "orderpriority",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "clerk",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "shippriority",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "comment",
-                    "type": "VARCHAR"
-                }
-            ],
-            "sources": [
-                "http://localhost:8083/example-data/orders-1.csv",
-                "http://localhost:8083/example-data/orders-2.csv"
-            ]
+            "name" : "s3",
+            "properties" : {
+                "table_auto_discovery_path": "s3://hive/warehouse/ods.db"
+            }
         },
         {
-            "name": "lineitem",
-            "columns": [
+            "name" : "preset",
+            "properties" : {
+                "key1":"value1",
+                "key2":"value1"
+            },
+            "tables" : [
                 {
-                    "name": "orderkey",
-                    "type": "BIGINT"
-                },
-                {
-                    "name": "partkey",
-                    "type": "BIGINT"
-                },
-                {
-                    "name": "suppkey",
-                    "type": "BIGINT"
-                },
-                {
-                    "name": "linenumber",
-                    "type": "BIGINT"
-                },
-                {
-                    "name": "quantity",
-                    "type": "DOUBLE"
-                },
-                {
-                    "name": "discount",
-                    "type": "DOUBLE"
-                },
-                {
-                    "name": "tax",
-                    "type": "DOUBLE"
-                },
-                {
-                    "name": "returnflag",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "linestatus",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "shipdate",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "commitdate",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "receiptdate",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "shipinstruct",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "shipmode",
-                    "type": "VARCHAR"
-                },
-                {
-                    "name": "comment",
-                    "type": "VARCHAR"
+                    "name": "table1",
+                    "properties" : {
+                        "key1":"value1",
+                        "key2":"value1"
+                    },
+                    "columns": [
+                        {
+                            "name": "text",
+                            "type": "VARCHAR"
+                        },
+                        {
+                            "name": "value",
+                            "type": "BIGINT"
+                        }
+                    ],
+                    "sources": [
+                        "http://localhost:8083/example-data/numbers-1.csv",
+                        "http://localhost:8083/example-data/numbers-2.csv"
+                    ]
                 }
-            ],
-            "sources": [
-                "http://localhost:8083/example-data/lineitem-1.csv",
-                "http://localhost:8083/example-data/lineitem-2.csv"
             ]
         }
     ]

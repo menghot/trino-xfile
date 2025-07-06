@@ -30,7 +30,6 @@ public class XFileTable {
     private final String name;
     private final List<XFileColumn> columns;
     private final List<ColumnMetadata> columnsMetadata;
-    private final List<URI> sources;
     private final Map<String, String> properties;
 
     @JsonCreator
@@ -43,7 +42,6 @@ public class XFileTable {
         checkArgument(!isNullOrEmpty(name), "name is null or is empty");
         this.name = requireNonNull(name, "name is null");
         this.columns = ImmutableList.copyOf(requireNonNull(columns, "columns is null"));
-        this.sources = ImmutableList.copyOf(requireNonNull(sources, "sources is null"));
 
         ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
         for (XFileColumn column : this.columns) {
@@ -60,11 +58,6 @@ public class XFileTable {
     @JsonProperty
     public List<XFileColumn> getColumns() {
         return columns;
-    }
-
-    @JsonProperty
-    public List<URI> getSources() {
-        return sources;
     }
 
     public List<ColumnMetadata> getColumnsMetadata() {

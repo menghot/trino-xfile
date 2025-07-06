@@ -1,9 +1,15 @@
 package io.trino.plugin.xfile;
 
+import io.trino.spi.connector.ConnectorSession;
+import io.trino.spi.security.TrinoPrincipal;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface XFileClient {
-    Set<XFileSchema> getSchemas();
+
+    List<XFileSchema> getSchemas();
 
     XFileSchema getSchema(String name);
 
@@ -12,4 +18,6 @@ public interface XFileClient {
     Set<String> getTableNames(String schema);
 
     XFileTable getTable(String schema, String tableName);
+
+    void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner);
 }

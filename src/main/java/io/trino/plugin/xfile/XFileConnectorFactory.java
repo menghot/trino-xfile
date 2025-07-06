@@ -37,7 +37,7 @@ public class XFileConnectorFactory
         implements ConnectorFactory {
     @Override
     public String getName() {
-        return "example_http";
+        return "xfile";
     }
 
     @Override

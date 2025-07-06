@@ -31,11 +31,11 @@ public class XFilePluginTest {
                 throws Exception {
             DistributedQueryRunner queryRunner = super.build();
             try {
-                URL metadataUrl = Resources.getResource(XFileClientDefaultTest.class, "/example-data/example-metadata-http.json");
+                URL metadataUrl = Resources.getResource(XFileClientSimpleTest.class, "/example-data/example-metadata-http.json");
                 queryRunner.installPlugin(new XFilePlugin());
 
                 //queryRunner.createCatalog("example", "example_http", ImmutableMap.of("metadata-uri", metadataUrl.toURI().toString()));
-                queryRunner.createCatalog("example", "example_http",
+                queryRunner.createCatalog("example", "xfile",
                         ImmutableMap.of(
                                 "metadata-uri", metadataUrl.toURI().toString(),
                                 "fs.native-s3.enabled", "true",
@@ -79,6 +79,11 @@ public class XFilePluginTest {
 
         queryRunner.execute("show catalogs").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("catalog: %s", r.toString()));
+
+        queryRunner.execute("create schema example.local WITH (\"table_auto_discovery_path\"='local:///')");
+
+        queryRunner.execute("show schemas from example").getMaterializedRows()
+                .iterator().forEachRemaining(r -> log.info("schemas: %s", r.toString()));
 
     }
 }

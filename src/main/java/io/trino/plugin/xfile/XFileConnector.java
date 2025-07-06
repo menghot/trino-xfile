@@ -13,6 +13,7 @@
  */
 package io.trino.plugin.xfile;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import io.airlift.bootstrap.LifeCycleManager;
 import io.trino.filesystem.TrinoFileSystemFactory;
@@ -23,6 +24,7 @@ import io.trino.spi.transaction.IsolationLevel;
 import java.util.List;
 
 import static io.trino.plugin.xfile.XFileTransactionHandle.INSTANCE;
+import static io.trino.spi.session.PropertyMetadata.stringProperty;
 import static java.util.Objects.requireNonNull;
 
 public class XFileConnector
@@ -76,6 +78,12 @@ public class XFileConnector
 
     @Override
     public List<PropertyMetadata<?>> getSchemaProperties() {
-        return Connector.super.getSchemaProperties();
+        return ImmutableList.of(
+                stringProperty(
+                        "table_auto_discovery_path",
+                        "table_auto_discovery_path",
+                        null,
+                        false));
+
     }
 }

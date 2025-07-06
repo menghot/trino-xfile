@@ -25,7 +25,6 @@ import org.junit.jupiter.api.TestInstance;
 import java.net.URL;
 import java.util.Optional;
 
-import static io.trino.plugin.xfile.XFileMetadataUtil.CATALOG_CODEC;
 import static io.trino.spi.type.BigintType.BIGINT;
 import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
 import static io.trino.testing.TestingConnectorSession.SESSION;
@@ -41,12 +40,12 @@ public class XFileMetadataTest {
     @BeforeEach
     public void setUp()
             throws Exception {
-        URL metadataUrl = Resources.getResource(XFileClientDefaultTest.class, "/example-data/example-metadata.json");
+        URL metadataUrl = Resources.getResource(XFileClientSimpleTest.class, "/example-data/example-metadata.json");
         assertThat(metadataUrl)
                 .describedAs("metadataUrl is null")
                 .isNotNull();
-        XFileClientDefault client = new XFileClientDefault(new XFileConfig().setMetadataUri(metadataUrl.toURI()), CATALOG_CODEC);
-        metadata = new XFileMetadata(client, null);
+//        XFileClientSimple client = new XFileClientSimple(new XFileConfig().setMetadataUri(metadataUrl.toURI()), CATALOG_CODEC);
+//        metadata = new XFileMetadata(client, null);
     }
 
     @Test

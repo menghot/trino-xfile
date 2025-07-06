@@ -43,6 +43,5 @@ public class XFileTableTest {
 
         assertThat(XFileTableCopy.getName()).isEqualTo(XFileTable.getName());
         assertThat(XFileTableCopy.getColumns()).isEqualTo(XFileTable.getColumns());
-        assertThat(XFileTableCopy.getSources()).isEqualTo(XFileTable.getSources());
     }
 }

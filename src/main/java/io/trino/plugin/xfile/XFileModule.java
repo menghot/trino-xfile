@@ -27,9 +27,9 @@ public class XFileModule
     public void configure(Binder binder) {
         binder.bind(XFileConnector.class).in(Scopes.SINGLETON);
         binder.bind(XFileMetadata.class).in(Scopes.SINGLETON);
-        binder.bind(XFileClientDefault.class).in(Scopes.SINGLETON);
+        binder.bind(XFileClientSimple.class).in(Scopes.SINGLETON);
         binder.bind(XFileSplitManager.class).in(Scopes.SINGLETON);
         configBinder(binder).bindConfig(XFileConfig.class);
-        jsonCodecBinder(binder).bindMapJsonCodec(String.class, listJsonCodec(XFileTable.class));
+        jsonCodecBinder(binder).bindMapJsonCodec(String.class, listJsonCodec(XFileSchema.class));
     }
 }

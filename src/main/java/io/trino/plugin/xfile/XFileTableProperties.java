@@ -20,7 +20,7 @@ public class XFileTableProperties {
     public static final String LOCATION_PROPERTY = "location";
     public static final String ORC_BLOOM_FILTER_COLUMNS_PROPERTY = "orc_bloom_filter_columns";
     public static final String PARQUET_BLOOM_FILTER_COLUMNS_PROPERTY = "parquet_bloom_filter_columns";
-    public static final String DATA_LOCATION_PROPERTY = "data_location";
+    public static final String DATA_LOCATION_PROPERTY = "location";
 
     private final List<PropertyMetadata<?>> tableProperties;
 

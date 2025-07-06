@@ -1,22 +1,41 @@
 package io.trino.plugin.xfile;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 import java.util.Map;
 
 public class XFileSchema {
     private final String name;
-    private final Map<String, String> properties;
+    private final Map<String, Object> properties;
+    private final List<XFileTable> tables;
 
-
-    public XFileSchema(String name, Map<String, String> properties) {
+    @JsonCreator
+    public XFileSchema(
+            @JsonProperty("name") String name,
+            @JsonProperty("properties") Map<String, Object> properties,
+            @JsonProperty("tables") List<XFileTable> tables) {
         this.name = name;
         this.properties = properties;
+        this.tables = tables;
     }
+
+    @JsonProperty
+
+    public List<XFileTable> getTables() {
+        return tables;
+    }
+
+    @JsonProperty
 
     public String getName() {
         return name;
     }
 
-    public Map<String, String> getProperties() {
+    @JsonProperty
+
+    public Map<String, Object> getProperties() {
         return properties;
     }
 }

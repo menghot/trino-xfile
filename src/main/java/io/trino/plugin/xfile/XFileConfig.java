@@ -20,26 +20,15 @@ import java.net.URI;
 
 public class XFileConfig {
     private URI metadataUri;
-    private String authentication;
-    private String credentials;
 
     @NotNull
     public URI getMetadataUri() {
         return metadataUri;
     }
 
-
     @Config("metadata-uri")
     public XFileConfig setMetadataUri(URI metadataUri) {
         this.metadataUri = metadataUri;
         return this;
-    }
-
-    public String getAuthentication() {
-        return authentication;
-    }
-
-    public String getCredentials() {
-        return credentials;
     }
 }

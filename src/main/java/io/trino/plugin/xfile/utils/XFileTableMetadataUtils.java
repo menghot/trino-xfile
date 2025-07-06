@@ -9,7 +9,7 @@ import io.trino.parquet.ParquetDataSource;
 import io.trino.parquet.metadata.FileMetadata;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
-import io.trino.plugin.xfile.parquet.XFileParquetFileDataSource;
+import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
 import io.trino.spi.connector.ColumnMetadata;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SchemaTableName;
@@ -45,7 +45,7 @@ public class XFileTableMetadataUtils {
 
         TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.getTableName()));
         try {
-            ParquetDataSource dataSource = new XFileParquetFileDataSource(trinoInputFile);
+            ParquetDataSource dataSource = new ParquetFileDataSource(trinoInputFile);
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
 
             FileMetadata fileMetaData = parquetMetadata.getFileMetaData();

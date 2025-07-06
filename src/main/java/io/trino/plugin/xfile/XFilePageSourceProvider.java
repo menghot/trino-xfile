@@ -21,7 +21,7 @@ import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
 import io.trino.parquet.reader.ParquetReader;
 import io.trino.plugin.xfile.parquet.ParquetPageSource;
-import io.trino.plugin.xfile.parquet.XFileParquetFileDataSource;
+import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
 import io.trino.plugin.xfile.record.XFileRecordSetProvider;
 import io.trino.spi.connector.*;
 import io.trino.spi.type.Type;
@@ -80,7 +80,7 @@ public class XFilePageSourceProvider
         if (tableHandle.getTableName().endsWith(".parquet")) {
             TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(tableHandle.getTableName()));
             try {
-                return getParquetPageSource(columns, new XFileParquetFileDataSource(trinoInputFile));
+                return getParquetPageSource(columns, new ParquetFileDataSource(trinoInputFile));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -8,11 +8,11 @@ import io.trino.parquet.ParquetReaderOptions;
 
 import java.io.IOException;
 
-public class XFileParquetFileDataSource extends AbstractParquetDataSource {
+public class ParquetFileDataSource extends AbstractParquetDataSource {
 
     TrinoInputFile trinoInputFile;
 
-    public XFileParquetFileDataSource(TrinoInputFile trinoInputFile) throws IOException {
+    public ParquetFileDataSource(TrinoInputFile trinoInputFile) throws IOException {
         super(new ParquetDataSourceId(trinoInputFile.location().path()), trinoInputFile.length(), ParquetReaderOptions.defaultOptions());
         this.trinoInputFile = trinoInputFile;
     }

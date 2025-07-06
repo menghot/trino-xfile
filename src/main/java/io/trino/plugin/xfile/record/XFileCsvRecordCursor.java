@@ -27,13 +27,10 @@ import io.trino.spi.type.DecimalType;
 import io.trino.spi.type.Type;
 import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -48,28 +45,14 @@ public class XFileCsvRecordCursor
     private final List<XFileColumnHandle> columnHandles;
     private final Iterator<String[]> lineIterator;
     // Processing objects
-    private CountingInputStream countingInputStream;
+    private final CountingInputStream countingInputStream;
     private String[] fields;
 
 
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
-
         InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.getxFileTable().getName());
-        try {
-            if (xFileSplit.getUri().endsWith(".csv")) {
-                countingInputStream = new CountingInputStream(is);
-            } else if (xFileSplit.getUri().endsWith(".gz")) {
-                GZIPInputStream gzipInputStream = new GZIPInputStream(is);
-                countingInputStream = new CountingInputStream(gzipInputStream);
-            } else if (xFileSplit.getUri().endsWith(".zip")) {
-                ZipInputStream zipInputStream = new ZipInputStream(is);
-                countingInputStream = new CountingInputStream(zipInputStream);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        countingInputStream = new CountingInputStream(is);
         CSVReader csvReader = new CSVReader(new InputStreamReader(countingInputStream));
         lineIterator = csvReader.iterator();
     }

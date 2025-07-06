@@ -2,7 +2,7 @@ package io.trino.plugin.xfile.parquet;
 
 import org.junit.jupiter.api.Test;
 
-class ParquetUtilsTest {
+class ParquetReaderUtilsTest {
 
     @Test
     void createParquetReader() {

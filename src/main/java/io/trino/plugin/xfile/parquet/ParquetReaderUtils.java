@@ -53,11 +53,11 @@ import static io.trino.parquet.predicate.PredicateUtils.getFilteredRowGroups;
 import static java.util.Locale.ENGLISH;
 import static org.joda.time.DateTimeZone.UTC;
 
-public class ParquetUtils {
+public class ParquetReaderUtils {
     private static final Random RANDOM = new Random(42);
     private static final TypeOperators TYPE_OPERATORS = new TypeOperators();
 
-    private ParquetUtils() {
+    private ParquetReaderUtils() {
     }
 
     public static ParquetReader createParquetReader(

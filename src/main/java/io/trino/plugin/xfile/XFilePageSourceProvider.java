@@ -20,8 +20,8 @@ import io.trino.parquet.ParquetDataSource;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
 import io.trino.parquet.reader.ParquetReader;
-import io.trino.plugin.xfile.parquet.ParquetPageSource;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
+import io.trino.plugin.xfile.parquet.ParquetPageSource;
 import io.trino.plugin.xfile.record.XFileRecordSetProvider;
 import io.trino.spi.connector.*;
 import io.trino.spi.type.Type;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.trino.memory.context.AggregatedMemoryContext.newSimpleAggregatedMemoryContext;
-import static io.trino.plugin.xfile.parquet.ParquetUtils.createParquetReader;
+import static io.trino.plugin.xfile.parquet.ParquetReaderUtils.createParquetReader;
 
 public class XFilePageSourceProvider
         implements ConnectorPageSourceProvider {

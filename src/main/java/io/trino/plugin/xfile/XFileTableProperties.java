@@ -74,11 +74,6 @@ public class XFileTableProperties {
                                 .map(name -> name.toLowerCase(ENGLISH))
                                 .collect(toImmutableList()),
                         value -> value))
-                .add(stringProperty(
-                        DATA_LOCATION_PROPERTY,
-                        "File system location URI for the table's data files",
-                        null,
-                        false))
                 .build();
     }
 

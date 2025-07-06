@@ -81,7 +81,7 @@ public class XFileConnector
         return ImmutableList.of(
                 stringProperty(
                         "table_auto_discovery_path",
-                        "table_auto_discovery_path",
+                        "Table system location URI for the table",
                         null,
                         false));
 

@@ -29,14 +29,14 @@ import java.util.OptionalLong;
 import static io.trino.plugin.base.util.Closables.closeAllSuppress;
 import static java.util.Objects.requireNonNull;
 
-public class ParquetPageSource
+public class ParquetPageDataSource
         implements ConnectorPageSource {
     private final ParquetReader parquetReader;
 
     private boolean closed;
     private long completedPositions;
 
-    public ParquetPageSource(ParquetReader parquetReader) {
+    public ParquetPageDataSource(ParquetReader parquetReader) {
         this.parquetReader = requireNonNull(parquetReader, "parquetReader is null");
     }
 

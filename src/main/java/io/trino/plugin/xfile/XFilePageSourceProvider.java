@@ -21,7 +21,7 @@ import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
 import io.trino.parquet.reader.ParquetReader;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
-import io.trino.plugin.xfile.parquet.ParquetPageSource;
+import io.trino.plugin.xfile.parquet.ParquetPageDataSource;
 import io.trino.plugin.xfile.record.XFileRecordSetProvider;
 import io.trino.spi.connector.*;
 import io.trino.spi.type.Type;
@@ -45,7 +45,7 @@ public class XFilePageSourceProvider
         this.recordSetProvider = new XFileRecordSetProvider(trinoFileSystemFactory);
     }
 
-    private static ParquetPageSource getParquetPageSource(List<ColumnHandle> columns, ParquetDataSource dataSource) {
+    private static ParquetPageDataSource getParquetPageSource(List<ColumnHandle> columns, ParquetDataSource dataSource) {
 
         List<String> columnNames = columns.stream().map((columnHandle) -> {
             XFileColumnHandle c = (XFileColumnHandle) columnHandle;
@@ -60,7 +60,7 @@ public class XFilePageSourceProvider
         try {
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
             ParquetReader reader = createParquetReader(dataSource, parquetMetadata, newSimpleAggregatedMemoryContext(), types, columnNames);
-            return new ParquetPageSource(reader);
+            return new ParquetPageDataSource(reader);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -118,6 +118,7 @@ public class XFileCsvRecordCursor
     public Object getObject(int field) {
         Type actual = getType(field);
         if (actual instanceof DecimalType decimalType) {
+            System.out.println(1);
         }
         throw new UnsupportedOperationException();
     }

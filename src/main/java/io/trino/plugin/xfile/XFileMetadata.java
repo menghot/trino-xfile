@@ -34,12 +34,12 @@ import static java.util.Objects.requireNonNull;
 
 public class XFileMetadata
         implements ConnectorMetadata {
-    private final XFileClientDefault XFileClientDefault;
+    private final XFileClientDefault xFileClient;
     private final TrinoFileSystemFactory trinoFileSystemFactory;
 
     @Inject
-    public XFileMetadata(XFileClientDefault XFileClientDefault, TrinoFileSystemFactory trinoFileSystemFactory) {
-        this.XFileClientDefault = requireNonNull(XFileClientDefault, "XFileClientDefault is null");
+    public XFileMetadata(XFileClientDefault xFileClient, TrinoFileSystemFactory trinoFileSystemFactory) {
+        this.xFileClient = requireNonNull(xFileClient, "XFileClientDefault is null");
         this.trinoFileSystemFactory = requireNonNull(trinoFileSystemFactory, "exampleFileSystemFactory is null");
     }
 
@@ -50,7 +50,7 @@ public class XFileMetadata
     }
 
     public List<String> listSchemaNames() {
-        return ImmutableList.copyOf(XFileClientDefault.getSchemaNames());
+        return ImmutableList.copyOf(xFileClient.getSchemaNames());
     }
 
     @Override
@@ -70,7 +70,7 @@ public class XFileMetadata
             return null;
         }
 
-        XFileTable table = XFileClientDefault.getTable(tableName.getSchemaName(), tableName.getTableName());
+        XFileTable table = xFileClient.getTable(tableName.getSchemaName(), tableName.getTableName());
         if (table == null) {
             return null;
         }
@@ -98,7 +98,7 @@ public class XFileMetadata
         }
 
         // 3. Metadata file
-        XFileTable table = XFileClientDefault.getTable(tableName.getSchemaName(), tableName.getTableName());
+        XFileTable table = xFileClient.getTable(tableName.getSchemaName(), tableName.getTableName());
         if (table == null) {
             return null;
         }
@@ -139,8 +139,10 @@ public class XFileMetadata
     @Override
     public List<SchemaTableName> listTables(ConnectorSession session, Optional<String> optionalSchemaName) {
 
-        if (optionalSchemaName.isPresent() && XFileClientDefault.getSchema(optionalSchemaName.get()) != null) {
-            String path = XFileClientDefault.getSchema(optionalSchemaName.get()).getProperties().get("auto_path");
+        if (optionalSchemaName.isPresent() && xFileClient.getSchema(optionalSchemaName.get()) != null) {
+
+            // Auto discovery the table if schema has property table_auto_discovery_path
+            String path = xFileClient.getSchema(optionalSchemaName.get()).getProperties().get("table_auto_discovery_path");
             if (path != null) {
                 // Auto discovery file as table
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
@@ -161,11 +163,11 @@ public class XFileMetadata
         }
 
         Set<String> schemaNames = optionalSchemaName.map(ImmutableSet::of)
-                .orElseGet(() -> ImmutableSet.copyOf(XFileClientDefault.getSchemaNames()));
+                .orElseGet(() -> ImmutableSet.copyOf(xFileClient.getSchemaNames()));
 
         ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
         for (String schemaName : schemaNames) {
-            for (String tableName : XFileClientDefault.getTableNames(schemaName)) {
+            for (String tableName : xFileClient.getTableNames(schemaName)) {
                 builder.add(new SchemaTableName(schemaName, tableName));
             }
         }
@@ -189,7 +191,7 @@ public class XFileMetadata
             return columnHandles.buildOrThrow();
         }
 
-        XFileTable table = XFileClientDefault.getTable(xFileTableHandle.getSchemaName(), xFileTableHandle.getTableName());
+        XFileTable table = xFileClient.getTable(xFileTableHandle.getSchemaName(), xFileTableHandle.getTableName());
         if (table == null) {
             throw new TableNotFoundException(xFileTableHandle.toSchemaTableName());
         }
@@ -211,10 +213,5 @@ public class XFileMetadata
     @Override
     public ColumnMetadata getColumnMetadata(ConnectorSession session, ConnectorTableHandle tableHandle, ColumnHandle columnHandle) {
         return ((XFileColumnHandle) columnHandle).getColumnMetadata();
-    }
-
-    @Override
-    public TableStatistics getTableStatistics(ConnectorSession session, ConnectorTableHandle tableHandle) {
-        return ConnectorMetadata.super.getTableStatistics(session, tableHandle);
     }
 }

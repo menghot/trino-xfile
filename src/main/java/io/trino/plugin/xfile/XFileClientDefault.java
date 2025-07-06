@@ -89,8 +89,8 @@ public class XFileClientDefault implements XFileClient {
 
     public Set<XFileSchema> getSchemas() {
         return Set.of(
-                new XFileSchema("s3", Map.of("auto_path", "s3://hive/warehouse/ods.db")),
-                new XFileSchema("local", Map.of("auto_path", "local:///")),
+                new XFileSchema("s3", Map.of("table_auto_discovery_path", "s3://hive/warehouse/ods.db")),
+                new XFileSchema("local", Map.of("table_auto_discovery_path", "local:///")),
                 new XFileSchema("example", Map.of()),
                 new XFileSchema("tpch", Map.of()));
     }

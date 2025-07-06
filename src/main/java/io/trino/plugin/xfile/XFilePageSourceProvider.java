@@ -77,6 +77,8 @@ public class XFilePageSourceProvider
 
         XFileSplit XFileSplit = (XFileSplit) split;
         XFileTableHandle tableHandle = (XFileTableHandle) table;
+
+        // 1. Create page source for parquet file
         if (tableHandle.getTableName().endsWith(".parquet")) {
             TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(tableHandle.getTableName()));
             try {
@@ -85,6 +87,8 @@ public class XFilePageSourceProvider
                 throw new RuntimeException(e);
             }
         }
+
+        // 2. Create RecordPageSource for non-parquet files
         return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, XFileSplit, tableHandle, columns));
     }
 }

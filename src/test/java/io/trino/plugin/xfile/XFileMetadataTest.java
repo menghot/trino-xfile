@@ -41,11 +41,11 @@ public class XFileMetadataTest {
     @BeforeEach
     public void setUp()
             throws Exception {
-        URL metadataUrl = Resources.getResource(XFileClientTest.class, "/example-data/example-metadata.json");
+        URL metadataUrl = Resources.getResource(XFileClientDefaultTest.class, "/example-data/example-metadata.json");
         assertThat(metadataUrl)
                 .describedAs("metadataUrl is null")
                 .isNotNull();
-        XFileClient client = new XFileClient(new XFileConfig().setMetadataUri(metadataUrl.toURI()), CATALOG_CODEC);
+        XFileClientDefault client = new XFileClientDefault(new XFileConfig().setMetadataUri(metadataUrl.toURI()), CATALOG_CODEC);
         metadata = new XFileMetadata(client, null);
     }
 

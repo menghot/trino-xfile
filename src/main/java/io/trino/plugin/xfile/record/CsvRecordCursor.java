@@ -21,7 +21,7 @@ import io.airlift.slice.Slices;
 import io.trino.filesystem.TrinoFileSystem;
 import io.trino.plugin.xfile.XFileColumnHandle;
 import io.trino.plugin.xfile.XFileSplit;
-import io.trino.plugin.xfile.utils.XFileSplitUtils;
+import io.trino.plugin.xfile.utils.TrinoFileSystemUtils;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.type.DecimalType;
 import io.trino.spi.type.Type;
@@ -42,13 +42,15 @@ public class CsvRecordCursor
 
     private final List<XFileColumnHandle> columnHandles;
     private final XFileSplit XFileSplit;
-
+    TrinoFileSystem trinoFileSystem;
     private CountingInputStream countingInputStream;
     private Iterator<String[]> lineIterator;
     private CSVReader csvReader;
     private String[] fields;
 
+
     public CsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit XFileSplit, TrinoFileSystem trinoFileSystem) {
+        this.trinoFileSystem = trinoFileSystem;
         this.columnHandles = columnHandles;
         this.XFileSplit = XFileSplit;
     }
@@ -73,7 +75,7 @@ public class CsvRecordCursor
     public boolean advanceNextPosition() {
         // 1. Init reader
         if (csvReader == null) {
-            countingInputStream = new CountingInputStream(XFileSplitUtils.readInputStream(null, XFileSplit));
+            countingInputStream = new CountingInputStream(TrinoFileSystemUtils.readInputStream(trinoFileSystem, ""));
             csvReader = new CSVReader(new InputStreamReader(countingInputStream));
             lineIterator = csvReader.iterator();
         }

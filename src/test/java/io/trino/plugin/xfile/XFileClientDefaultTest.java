@@ -26,16 +26,16 @@ import static io.trino.spi.type.BigintType.BIGINT;
 import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class XFileClientTest {
+public class XFileClientDefaultTest {
     @Test
     public void testMetadata()
             throws Exception {
-        URL metadataUrl = Resources.getResource(XFileClientTest.class, "/example-data/example-metadata.json");
+        URL metadataUrl = Resources.getResource(XFileClientDefaultTest.class, "/example-data/example-metadata.json");
         assertThat(metadataUrl)
                 .describedAs("metadataUrl is null")
                 .isNotNull();
         URI metadata = metadataUrl.toURI();
-        XFileClient client = new XFileClient(new XFileConfig().setMetadataUri(metadata), CATALOG_CODEC);
+        XFileClientDefault client = new XFileClientDefault(new XFileConfig().setMetadataUri(metadata), CATALOG_CODEC);
         assertThat(client.getSchemaNames()).isEqualTo(ImmutableSet.of("example", "tpch"));
         assertThat(client.getTableNames("example")).isEqualTo(ImmutableSet.of("numbers"));
         assertThat(client.getTableNames("tpch")).isEqualTo(ImmutableSet.of("orders", "lineitem"));

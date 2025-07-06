@@ -31,7 +31,7 @@ public class XFilePluginTest {
                 throws Exception {
             DistributedQueryRunner queryRunner = super.build();
             try {
-                URL metadataUrl = Resources.getResource(XFileClientTest.class, "/example-data/example-metadata-http.json");
+                URL metadataUrl = Resources.getResource(XFileClientDefaultTest.class, "/example-data/example-metadata-http.json");
                 queryRunner.installPlugin(new XFilePlugin());
 
                 //queryRunner.createCatalog("example", "example_http", ImmutableMap.of("metadata-uri", metadataUrl.toURI().toString()));

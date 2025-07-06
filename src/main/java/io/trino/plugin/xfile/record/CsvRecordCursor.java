@@ -25,7 +25,9 @@ import io.trino.plugin.xfile.utils.TrinoFileSystemUtils;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.type.DecimalType;
 import io.trino.spi.type.Type;
+import org.apache.commons.io.IOUtils;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
@@ -41,18 +43,20 @@ public class CsvRecordCursor
         implements RecordCursor {
 
     private final List<XFileColumnHandle> columnHandles;
-    private final XFileSplit XFileSplit;
-    TrinoFileSystem trinoFileSystem;
+    private final XFileSplit xFileSplit;
+    private final TrinoFileSystem trinoFileSystem;
+
+    // Processing objects
     private CountingInputStream countingInputStream;
     private Iterator<String[]> lineIterator;
-    private CSVReader csvReader;
+    private volatile CSVReader csvReader;
     private String[] fields;
 
 
-    public CsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit XFileSplit, TrinoFileSystem trinoFileSystem) {
+    public CsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.trinoFileSystem = trinoFileSystem;
         this.columnHandles = columnHandles;
-        this.XFileSplit = XFileSplit;
+        this.xFileSplit = xFileSplit;
     }
 
     @Override
@@ -75,9 +79,14 @@ public class CsvRecordCursor
     public boolean advanceNextPosition() {
         // 1. Init reader
         if (csvReader == null) {
-            countingInputStream = new CountingInputStream(TrinoFileSystemUtils.readInputStream(trinoFileSystem, ""));
-            csvReader = new CSVReader(new InputStreamReader(countingInputStream));
-            lineIterator = csvReader.iterator();
+            synchronized (this) {
+                if (csvReader == null) {
+                    InputStream is = TrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.getUri());
+                    countingInputStream = new CountingInputStream(is);
+                    csvReader = new CSVReader(new InputStreamReader(countingInputStream));
+                    lineIterator = csvReader.iterator();
+                }
+            }
         }
 
         // 2. skip rows
@@ -145,5 +154,6 @@ public class CsvRecordCursor
 
     @Override
     public void close() {
+        IOUtils.closeQuietly(countingInputStream);
     }
 }

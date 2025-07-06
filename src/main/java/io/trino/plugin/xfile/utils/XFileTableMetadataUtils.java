@@ -21,7 +21,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Optional;
 
-import static io.trino.plugin.xfile.utils.ParquetTypeUtils.convertParquetTypeToTrino;
+import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
 
 public class XFileTableMetadataUtils {
 

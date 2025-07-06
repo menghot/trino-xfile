@@ -1,4 +1,4 @@
-package io.trino.plugin.xfile.utils;
+package io.trino.plugin.xfile.parquet;
 
 import io.trino.spi.type.*;
 import org.apache.parquet.schema.GroupType;

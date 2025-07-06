@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.trino.memory.context.AggregatedMemoryContext.newSimpleAggregatedMemoryContext;
-import static io.trino.plugin.xfile.utils.ParquetUtils.createParquetReader;
+import static io.trino.plugin.xfile.parquet.ParquetUtils.createParquetReader;
 
 public class XFilePageSourceProvider
         implements ConnectorPageSourceProvider {

@@ -38,13 +38,17 @@ public class XFilePluginTest {
                 queryRunner.createCatalog("example", "example_http",
                         ImmutableMap.of(
                                 "metadata-uri", metadataUrl.toURI().toString(),
-                                "fs.native-s3.enabled", "true",  // support multiple file system
+                                "fs.native-s3.enabled", "true",
+
+                                // support multiple file system
                                 "s3.aws-access-key", "nDu2sEEwRzEqshz4L0dH",
                                 "s3.aws-secret-key", "d70ZQaHihIpnMAloRXIrTTl8gtj57jS88ewXhjAP",
                                 "s3.endpoint", "http://192.168.80.241:9000",
                                 "s3.path-style-access", "true",
                                 "s3.region", "dummy",
-                                "fs.native-local.enabled" , "true",  // support multiple file system
+
+                                // support multiple file system
+                                "fs.native-local.enabled" , "true",
                                 "local.location" , "/Users/simon/workspaces/trino-xfile/src/test/resources"
                         )
                 );

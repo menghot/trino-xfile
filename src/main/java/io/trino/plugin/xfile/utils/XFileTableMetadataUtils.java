@@ -1,6 +1,7 @@
 package io.trino.plugin.xfile.utils;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.opencsv.CSVReader;
 import io.trino.filesystem.Location;
 import io.trino.filesystem.TrinoFileSystem;
@@ -9,7 +10,9 @@ import io.trino.parquet.ParquetDataSource;
 import io.trino.parquet.metadata.FileMetadata;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
+import io.trino.plugin.xfile.XFileColumnHandle;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
+import io.trino.spi.connector.ColumnHandle;
 import io.trino.spi.connector.ColumnMetadata;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SchemaTableName;
@@ -19,11 +22,30 @@ import org.apache.parquet.schema.MessageType;
 
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
 
 public class XFileTableMetadataUtils {
+
+    public static Map<String, ColumnHandle> getCsvFileColumnHandles(TrinoFileSystem trinoFileSystem, String tableName) {
+        ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
+        AtomicInteger index = new AtomicInteger();
+
+        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName)));
+        Iterator<String[]> lineIterator = csvReader.iterator();
+
+        if (lineIterator.hasNext()) {
+            String[] fields = lineIterator.next();
+            for (String field : fields) {
+                String name = field.trim();
+                columnHandles.put(name, new XFileColumnHandle(name, VarcharType.createUnboundedVarcharType(), index.getAndIncrement(), false));
+            }
+        }
+        return columnHandles.buildOrThrow();
+    }
 
 
     public static ConnectorTableMetadata getCsvConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {

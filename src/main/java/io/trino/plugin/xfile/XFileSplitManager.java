@@ -18,6 +18,7 @@ import io.trino.spi.connector.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
@@ -37,18 +38,14 @@ public class XFileSplitManager
             ConnectorTableHandle connectorTableHandle,
             DynamicFilter dynamicFilter,
             Constraint constraint) {
+
         XFileTableHandle tableHandle = (XFileTableHandle) connectorTableHandle;
-        XFileTable table = XFileClientDefault.getTable(tableHandle.getSchemaName(), tableHandle.getTableName());
 
-
-        //
-        if (tableHandle.getTableName().endsWith(".parquet")) {
-            table = new XFileTable(tableHandle.getTableName(), List.of(), List.of(URI.create("http://example.com:8080/abc")), null);
-        }
-
-        // This can happen if table is removed during a query
-        if (table == null) {
-            throw new TableNotFoundException(tableHandle.toSchemaTableName());
+        XFileTable table;
+        if (tableHandle.getTableName().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
+            table = new XFileTable(tableHandle.getTableName(), List.of(), List.of(URI.create("http://example.com:8080/abc")), Map.of());
+        } else  {
+            table = XFileClientDefault.getTable(tableHandle.getSchemaName(), tableHandle.getTableName());
         }
 
         return new XFileSplitSource(table, tableHandle, dynamicFilter);

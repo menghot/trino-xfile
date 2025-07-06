@@ -49,9 +49,10 @@ public class XFileSplitSource implements ConnectorSplitSource {
 
             // build splits
             if (splits.isEmpty()) {
-                for (URI uri : table.getSources()) {
-                    splits.add(new XFileSplit(uri.toString(), properties, table));
-                }
+                splits.add(new XFileSplit("http://example.org", properties, table));
+                //for (URI uri : table.getSources()) {
+                    //splits.add(new XFileSplit(uri.toString(), properties, table));
+                //}
             }
 
             //

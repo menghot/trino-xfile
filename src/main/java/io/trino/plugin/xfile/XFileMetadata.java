@@ -174,19 +174,24 @@ public class XFileMetadata
 
     @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle) {
-        XFileTableHandle XFileTableHandle = (XFileTableHandle) tableHandle;
-        if (XFileTableHandle.getTableName().endsWith(".parquet")) {
+        XFileTableHandle xFileTableHandle = (XFileTableHandle) tableHandle;
+        if (xFileTableHandle.getTableName().matches(XFileConstants.XFILE_TABLE_NAME_REGEX)) {
+            if (xFileTableHandle.getTableName().endsWith(".csv")) {
+                return XFileTableMetadataUtils.getCsvFileColumnHandles(trinoFileSystemFactory.create(session), xFileTableHandle.getTableName());
+            }
+
+
             ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
             AtomicInteger index = new AtomicInteger();
-            for (ColumnMetadata column : getTableMetadata(session, XFileTableHandle).getColumns()) {
+            for (ColumnMetadata column : getTableMetadata(session, xFileTableHandle).getColumns()) {
                 columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
             }
             return columnHandles.buildOrThrow();
         }
 
-        XFileTable table = XFileClientDefault.getTable(XFileTableHandle.getSchemaName(), XFileTableHandle.getTableName());
+        XFileTable table = XFileClientDefault.getTable(xFileTableHandle.getSchemaName(), xFileTableHandle.getTableName());
         if (table == null) {
-            throw new TableNotFoundException(XFileTableHandle.toSchemaTableName());
+            throw new TableNotFoundException(xFileTableHandle.toSchemaTableName());
         }
 
         ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
@@ -195,22 +200,12 @@ public class XFileMetadata
             columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
         }
 
-        Arrays.stream(XFileInternalColumn.values()).iterator().forEachRemaining(column -> {
-            columnHandles.put(column.getName(),
-                    new XFileColumnHandle(column.getName(),
-                            VarcharType.createUnboundedVarcharType(),
-                            index.getAndIncrement(), true));
-        });
+        Arrays.stream(XFileInternalColumn.values()).iterator().forEachRemaining(column -> columnHandles.put(column.getName(),
+                new XFileColumnHandle(column.getName(),
+                        VarcharType.createUnboundedVarcharType(),
+                        index.getAndIncrement(), true)));
 
         return columnHandles.buildOrThrow();
-    }
-
-
-    private List<SchemaTableName> listTables(ConnectorSession session, SchemaTablePrefix prefix) {
-        if (prefix.getTable().isEmpty()) {
-            return listTables(session, prefix.getSchema());
-        }
-        return ImmutableList.of(prefix.toSchemaTableName());
     }
 
     @Override

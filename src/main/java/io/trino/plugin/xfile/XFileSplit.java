@@ -35,22 +35,22 @@ public class XFileSplit
     private final String uri;
     private final Map<String, String> splitInfos;
     private final List<HostAddress> addresses;
-    private final XFileTable XFileTable;
+    private final XFileTable xFileTable;
 
     @JsonCreator
     public XFileSplit(
             @JsonProperty("uri") String uri,
             @JsonProperty("properties") Map<String, String> splitInfo,
-            @JsonProperty("table") XFileTable XFileTable) {
+            @JsonProperty("xFileTable") XFileTable xFileTable) {
         this.uri = requireNonNull(uri, "uri is null");
         this.splitInfos = Objects.requireNonNullElseGet(splitInfo, HashMap::new);
-        this.XFileTable = XFileTable;
+        this.xFileTable = xFileTable;
         addresses = ImmutableList.of(HostAddress.fromUri(URI.create(uri)));
     }
 
     @JsonProperty
-    public XFileTable getExampleTable() {
-        return XFileTable;
+    public XFileTable getxFileTable() {
+        return xFileTable;
     }
 
     public Map<String, String> getSplitInfos() {

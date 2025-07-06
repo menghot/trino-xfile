@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -43,20 +44,20 @@ public class XFileCsvRecordCursor
         implements RecordCursor {
 
     private final List<XFileColumnHandle> columnHandles;
-    private final XFileSplit xFileSplit;
-    private final TrinoFileSystem trinoFileSystem;
 
     // Processing objects
-    private CountingInputStream countingInputStream;
-    private Iterator<String[]> lineIterator;
-    private volatile CSVReader csvReader;
+    private final CountingInputStream countingInputStream;
+    private final Iterator<String[]> lineIterator;
     private String[] fields;
 
 
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
-        this.trinoFileSystem = trinoFileSystem;
         this.columnHandles = columnHandles;
-        this.xFileSplit = xFileSplit;
+
+        InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.getxFileTable().getName());
+        countingInputStream = new CountingInputStream(is);
+        CSVReader csvReader = new CSVReader(new InputStreamReader(countingInputStream));
+        lineIterator = csvReader.iterator();
     }
 
     @Override
@@ -77,31 +78,11 @@ public class XFileCsvRecordCursor
 
     @Override
     public boolean advanceNextPosition() {
-        // 1. Init reader
-        if (csvReader == null) {
-            synchronized (this) {
-                if (csvReader == null) {
-                    InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.getUri());
-                    countingInputStream = new CountingInputStream(is);
-                    csvReader = new CSVReader(new InputStreamReader(countingInputStream));
-                    lineIterator = csvReader.iterator();
-                }
-            }
-        }
-
-        // 2. skip rows
-        int skipRows = 1;
-        while (skipRows-- >= 0 && lineIterator.hasNext()) {
-            lineIterator.next();
-        }
-
-        if (!lineIterator.hasNext()) {
-            return false;
-        } else {
+        if (lineIterator.hasNext()) {
             fields = lineIterator.next();
+            return true;
         }
-
-        return true;
+        return false;
     }
 
     private String getFieldValue(int field) {

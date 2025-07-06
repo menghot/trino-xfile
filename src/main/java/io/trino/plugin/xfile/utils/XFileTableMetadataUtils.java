@@ -28,7 +28,7 @@ public class XFileTableMetadataUtils {
 
     public static ConnectorTableMetadata getCsvConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
         ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
-        CSVReader csvReader = new CSVReader(new InputStreamReader(TrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName())));
+        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName())));
         Iterator<String[]> lineIterator = csvReader.iterator();
         if (lineIterator.hasNext()) {
             String[] fields = lineIterator.next();

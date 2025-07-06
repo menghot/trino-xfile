@@ -51,6 +51,6 @@ public class XFileRecordSet
 
     @Override
     public RecordCursor cursor() {
-        return new CsvRecordCursor(columnHandles, split, trinoFileSystem);
+        return new XFileCsvRecordCursor(columnHandles, split, trinoFileSystem);
     }
 }

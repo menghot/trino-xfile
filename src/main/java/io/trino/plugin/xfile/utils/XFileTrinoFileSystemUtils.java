@@ -6,7 +6,7 @@ import io.trino.filesystem.TrinoFileSystem;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class TrinoFileSystemUtils {
+public class XFileTrinoFileSystemUtils {
 
     public static InputStream readInputStream(TrinoFileSystem trinoFileSystem, String location) {
         try {

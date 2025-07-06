@@ -121,7 +121,7 @@ public class ParquetReaderUtils {
                 1000,
                 options);
 
-        return new ExampleParquetReader(
+        return new XFileParquetReader(
                 Optional.ofNullable(fileMetaData.getCreatedBy()),
                 columnFields.build(),
                 false,
@@ -138,9 +138,9 @@ public class ParquetReaderUtils {
                 Optional.empty());
     }
 
-    public static class ExampleParquetReader extends ParquetReader {
+    public static class XFileParquetReader extends ParquetReader {
 
-        public ExampleParquetReader(Optional<String> fileCreatedBy, List<Column> columnFields, boolean appendRowNumberColumn, List<RowGroupInfo> rowGroups, ParquetDataSource dataSource, DateTimeZone timeZone, AggregatedMemoryContext memoryContext, ParquetReaderOptions options, Function<Exception, RuntimeException> exceptionTransform, Optional<TupleDomainParquetPredicate> parquetPredicate, Optional<ParquetWriteValidation> writeValidation) throws IOException {
+        public XFileParquetReader(Optional<String> fileCreatedBy, List<Column> columnFields, boolean appendRowNumberColumn, List<RowGroupInfo> rowGroups, ParquetDataSource dataSource, DateTimeZone timeZone, AggregatedMemoryContext memoryContext, ParquetReaderOptions options, Function<Exception, RuntimeException> exceptionTransform, Optional<TupleDomainParquetPredicate> parquetPredicate, Optional<ParquetWriteValidation> writeValidation) throws IOException {
             super(fileCreatedBy, columnFields, appendRowNumberColumn, rowGroups, dataSource, timeZone, memoryContext, options, exceptionTransform, parquetPredicate, writeValidation);
         }
 

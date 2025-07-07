@@ -84,7 +84,6 @@ public class XFileClientSimple implements XFileClient {
 
     @Override
     public void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner) {
-        //
         schemas.add(new XFileSchema(schemaName, properties, List.of()));
     }
 }

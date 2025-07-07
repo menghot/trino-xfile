@@ -28,10 +28,6 @@
                             "name": "value",
                             "type": "BIGINT"
                         }
-                    ],
-                    "sources": [
-                        "http://localhost:8083/example-data/numbers-1.csv",
-                        "http://localhost:8083/example-data/numbers-2.csv"
                     ]
                 }
             ]

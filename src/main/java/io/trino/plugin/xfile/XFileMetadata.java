@@ -81,30 +81,21 @@ public class XFileMetadata
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
 
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).toSchemaTableName();
-
         // 1. Get table metadata from parquet/csv file
         if (schemaTableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
             if (schemaTableName.getTableName().endsWith(".parquet")) {
                 return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, schemaTableName);
-
             }
             return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
+        } else {
+            XFileTable table = xFileClient.getTable(schemaTableName.getSchemaName(), schemaTableName.getTableName());
+            if (table == null) {
+                return null;
+            }
+            // Get metadata from metadata api
+            return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata());
         }
-
-
-        if (!listSchemaNames().contains(schemaTableName.getSchemaName())) {
-            return null;
-        }
-
-
-        XFileTable table = xFileClient.getTable(schemaTableName.getSchemaName(), schemaTableName.getTableName());
-        if (table == null) {
-            return null;
-        }
-
-        // Get metadata from metadata api
-        return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata());
     }
 
     @Override
@@ -140,16 +131,19 @@ public class XFileMetadata
     @Override
     public List<SchemaTableName> listTables(ConnectorSession session, Optional<String> optionalSchemaName) {
 
-        if (optionalSchemaName.isPresent() && xFileClient.getSchema(optionalSchemaName.get()) != null) {
+        // If schema not preset, retrieve all schemas
+        Set<String> schemaNames = optionalSchemaName.map(ImmutableSet::of)
+                .orElseGet(() -> ImmutableSet.copyOf(xFileClient.getSchemaNames()));
 
-            // Auto discovery tables if schema has property table_auto_discovery_path
-            String path = xFileClient.getSchema(optionalSchemaName.get()).getProperties().getOrDefault("table_auto_discovery_path", "").toString();
+        ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
+        for (String schemaName : schemaNames) {
+            XFileSchema xFileSchema = xFileClient.getSchema(schemaName);
+            Object path = xFileSchema.getProperties().get("table_auto_discovery_path");
             if (path != null) {
                 // Auto discovery files as tables
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
                 try {
-                    FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(path));
-                    ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
+                    FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(path.toString()));
                     while (fileIterator.hasNext()) {
                         FileEntry fileEntry = fileIterator.next();
                         if (fileEntry.location().toString().matches(XFileConstants.FILE_TABLE_REGEX)) {
@@ -160,16 +154,10 @@ public class XFileMetadata
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            }
-        }
-
-        Set<String> schemaNames = optionalSchemaName.map(ImmutableSet::of)
-                .orElseGet(() -> ImmutableSet.copyOf(xFileClient.getSchemaNames()));
-
-        ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
-        for (String schemaName : schemaNames) {
-            for (String tableName : xFileClient.getTableNames(schemaName)) {
-                builder.add(new SchemaTableName(schemaName, tableName));
+            } else {
+                for (String tableName : xFileClient.getTableNames(schemaName)) {
+                    builder.add(new SchemaTableName(schemaName, tableName));
+                }
             }
         }
         return builder.build();

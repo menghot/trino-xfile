@@ -69,6 +69,7 @@ public class XFilePluginTest {
 
         QueryRunner queryRunner = builder()
                 .addCoordinatorProperty("http-server.http.port", "8082")
+                //.addCoordinatorProperty("http-server.http.bind-address", "192.168.80.241")
                 .addCoordinatorProperty("node-scheduler.include-coordinator", "true")
                 .setWorkerCount(0)
                 .build();
@@ -80,7 +81,7 @@ public class XFilePluginTest {
         queryRunner.execute("show catalogs").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("catalog: %s", r.toString()));
 
-        queryRunner.execute("create schema example.local WITH (\"table_auto_discovery_path\"='local:///')");
+        queryRunner.execute("create schema example.local WITH (\"location\"='local:///')");
 
         queryRunner.execute("show schemas from example").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("schemas: %s", r.toString()));

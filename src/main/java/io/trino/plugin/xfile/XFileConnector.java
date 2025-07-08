@@ -80,7 +80,7 @@ public class XFileConnector
     public List<PropertyMetadata<?>> getSchemaProperties() {
         return ImmutableList.of(
                 stringProperty(
-                        "table_auto_discovery_path",
+                        "location",
                         "Table system location URI for the table",
                         null,
                         false));

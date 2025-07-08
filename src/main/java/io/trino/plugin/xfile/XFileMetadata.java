@@ -138,7 +138,7 @@ public class XFileMetadata
         ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
         for (String schemaName : schemaNames) {
             XFileSchema xFileSchema = xFileClient.getSchema(schemaName);
-            Object path = xFileSchema.getProperties().get("table_auto_discovery_path");
+            Object path = xFileSchema.getProperties().get("location");
             if (path != null) {
                 // Auto discovery files as tables
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);

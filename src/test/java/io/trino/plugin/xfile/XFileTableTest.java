@@ -17,8 +17,6 @@ import com.google.common.collect.ImmutableList;
 import io.trino.spi.connector.ColumnMetadata;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-
 import static io.trino.plugin.xfile.XFileMetadataUtil.TABLE_CODEC;
 import static io.trino.spi.type.BigintType.BIGINT;
 import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
@@ -27,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class XFileTableTest {
     private final XFileTable XFileTable = new XFileTable("tableName",
             ImmutableList.of(new XFileColumn("a", createUnboundedVarcharType()), new XFileColumn("b", BIGINT)),
-            ImmutableList.of(URI.create("file://table-1.json"), URI.create("file://table-2.json")), null);
+            null);
 
     @Test
     public void testColumnMetadata() {

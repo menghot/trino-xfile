@@ -3,7 +3,7 @@
         {
             "name" : "s3",
             "properties" : {
-                "table_auto_discovery_path": "s3://hive/warehouse/ods.db"
+                "location": "s3://hive/warehouse/ods.db"
             }
         },
         {

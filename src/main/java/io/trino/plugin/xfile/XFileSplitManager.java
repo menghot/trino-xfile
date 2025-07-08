@@ -16,7 +16,6 @@ package io.trino.plugin.xfile;
 import com.google.inject.Inject;
 import io.trino.spi.connector.*;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public class XFileSplitManager
 
         XFileTable table;
         if (tableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
-            table = new XFileTable(tableHandle.getTableName(), List.of(), List.of(URI.create("http://example.com:8080/abc")), Map.of());
+            table = new XFileTable(tableHandle.getTableName(), List.of(), Map.of());
         } else {
             table = XFileClientSimple.getTable(tableHandle.getSchemaName(), tableHandle.getTableName());
         }

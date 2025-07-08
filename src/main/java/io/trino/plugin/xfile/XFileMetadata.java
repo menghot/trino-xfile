@@ -138,12 +138,12 @@ public class XFileMetadata
         ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
         for (String schemaName : schemaNames) {
             XFileSchema xFileSchema = xFileClient.getSchema(schemaName);
-            Object path = xFileSchema.getProperties().get("location");
-            if (path != null) {
+            Object location = xFileSchema.getProperties().get("location");
+            if (location != null) {
                 // Auto discovery files as tables
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
                 try {
-                    FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(path.toString()));
+                    FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(location.toString()));
                     while (fileIterator.hasNext()) {
                         FileEntry fileEntry = fileIterator.next();
                         if (fileEntry.location().toString().matches(XFileConstants.FILE_TABLE_REGEX)) {

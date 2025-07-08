@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import io.trino.spi.connector.ColumnMetadata;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +35,6 @@ public class XFileTable {
     public XFileTable(
             @JsonProperty("name") String name,
             @JsonProperty("columns") List<XFileColumn> columns,
-            @JsonProperty("sources") List<URI> sources,
             @JsonProperty("properties") Map<String, String> properties) {
         this.properties = properties;
         checkArgument(!isNullOrEmpty(name), "name is null or is empty");

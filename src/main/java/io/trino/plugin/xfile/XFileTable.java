@@ -29,13 +29,13 @@ public class XFileTable {
     private final String name;
     private final List<XFileColumn> columns;
     private final List<ColumnMetadata> columnsMetadata;
-    private final Map<String, String> properties;
+    private final Map<String, Object> properties;
 
     @JsonCreator
     public XFileTable(
             @JsonProperty("name") String name,
             @JsonProperty("columns") List<XFileColumn> columns,
-            @JsonProperty("properties") Map<String, String> properties) {
+            @JsonProperty("properties") Map<String, Object> properties) {
         this.properties = properties;
         checkArgument(!isNullOrEmpty(name), "name is null or is empty");
         this.name = requireNonNull(name, "name is null");
@@ -62,7 +62,7 @@ public class XFileTable {
         return columnsMetadata;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 }

@@ -209,4 +209,9 @@ public class XFileMetadata
     public void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner) {
         xFileClient.createSchema(session, schemaName, properties, owner);
     }
+
+    @Override
+    public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
+        xFileClient.createTable(session, tableMetadata, saveMode);
+    }
 }

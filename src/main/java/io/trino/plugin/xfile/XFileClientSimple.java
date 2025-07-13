@@ -17,12 +17,12 @@ import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import io.airlift.json.JsonCodec;
 import io.trino.spi.connector.ConnectorSession;
+import io.trino.spi.connector.ConnectorTableMetadata;
+import io.trino.spi.connector.SaveMode;
 import io.trino.spi.security.TrinoPrincipal;
 
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -76,14 +76,34 @@ public class XFileClientSimple implements XFileClient {
     public XFileTable getTable(String schema, String tableName) {
         requireNonNull(schema, "schema is null");
         requireNonNull(tableName, "tableName is null");
-        return schemas.stream().filter(s -> s.getName().equals(schema))
-                .findFirst().get().getTables()
-                .stream().filter(t -> tableName.equals(t.getName())).findFirst().orElse(null);
-
+        Optional<XFileSchema>  xFileSchema=  schemas.stream().filter(s -> s.getName().equals(schema)).findFirst();
+       if (xFileSchema.isPresent() && xFileSchema.get().getTables() != null) {
+          return xFileSchema.get().getTables().stream().filter(t -> t.getName().equals(tableName)).findFirst().orElse(null);
+       }
+       return null;
     }
 
     @Override
     public void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner) {
         schemas.add(new XFileSchema(schemaName, properties, List.of()));
+    }
+
+    @Override
+    public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
+
+        XFileSchema xFileSchema = getSchema(tableMetadata.getTable().getSchemaName());
+
+        List<XFileColumn> columns = tableMetadata.getColumns().stream().map(c -> new XFileColumn(
+                c.getName(),
+                c.getType()
+        )).toList();
+
+
+        xFileSchema.getTables().add(new
+                XFileTable(
+                tableMetadata.getTable().getTableName(),
+                columns,
+                tableMetadata.getProperties())
+        );
     }
 }

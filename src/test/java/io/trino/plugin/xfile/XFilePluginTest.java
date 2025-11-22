@@ -34,20 +34,20 @@ public class XFilePluginTest {
                 URL metadataUrl = Resources.getResource(XFileClientSimpleTest.class, "/example-data/example-metadata-http.json");
                 queryRunner.installPlugin(new XFilePlugin());
 
-                //queryRunner.createCatalog("example", "example_http", ImmutableMap.of("metadata-uri", metadataUrl.toURI().toString()));
-                queryRunner.createCatalog("example", "xfile",
+                // create xfile catalog
+                queryRunner.createCatalog("xfile", "xfile",
                         ImmutableMap.of(
                                 "metadata-uri", metadataUrl.toURI().toString(),
-                                "fs.native-s3.enabled", "true",
 
-                                // support multiple file system
+                                // 1. define s3 file system
+                                "fs.native-s3.enabled", "true",
                                 "s3.aws-access-key", "nDu2sEEwRzEqshz4L0dH",
                                 "s3.aws-secret-key", "d70ZQaHihIpnMAloRXIrTTl8gtj57jS88ewXhjAP",
                                 "s3.endpoint", "http://192.168.80.241:9000",
                                 "s3.path-style-access", "true",
                                 "s3.region", "dummy",
 
-                                // support multiple file system
+                                // 2. define local file system
                                 "fs.native-local.enabled" , "true",
                                 "local.location" , "/Users/simon/workspaces/trino-xfile/src/test/resources"
                         )
@@ -69,7 +69,6 @@ public class XFilePluginTest {
 
         QueryRunner queryRunner = builder()
                 .addCoordinatorProperty("http-server.http.port", "8082")
-                //.addCoordinatorProperty("http-server.http.bind-address", "192.168.80.241")
                 .addCoordinatorProperty("node-scheduler.include-coordinator", "true")
                 .setWorkerCount(0)
                 .build();
@@ -81,9 +80,9 @@ public class XFilePluginTest {
         queryRunner.execute("show catalogs").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("catalog: %s", r.toString()));
 
-        queryRunner.execute("create schema example.local WITH (\"location\"='local:///')");
+        queryRunner.execute("create schema xfile.local WITH (\"location\"='local:///')");
 
-        queryRunner.execute("show schemas from example").getMaterializedRows()
+        queryRunner.execute("show schemas from xfile").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("schemas: %s", r.toString()));
 
     }

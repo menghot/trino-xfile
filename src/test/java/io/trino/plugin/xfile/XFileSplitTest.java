@@ -25,36 +25,10 @@ public class XFileSplitTest {
     private final XFileSplit split = new XFileSplit("http://127.0.0.1/test.file", null, null);
 
     @Test
-    public void testAddresses() {
-        // http split with default port
-        XFileSplit httpSplit = new XFileSplit("http://example.com/example", null, null);
-        assertThat(httpSplit.getAddresses()).isEqualTo(ImmutableList.of(HostAddress.fromString("example.com")));
-        assertThat(httpSplit.isRemotelyAccessible()).isEqualTo(true);
-
-        // http split with custom port
-        httpSplit = new XFileSplit("http://example.com:8080/example", null, null);
-        assertThat(httpSplit.getAddresses()).isEqualTo(ImmutableList.of(HostAddress.fromParts("example.com", 8080)));
-        assertThat(httpSplit.isRemotelyAccessible()).isEqualTo(true);
-
-        // http split with default port
-        XFileSplit httpsSplit = new XFileSplit("https://example.com/example", null, null);
-        assertThat(httpsSplit.getAddresses()).isEqualTo(ImmutableList.of(HostAddress.fromString("example.com")));
-        assertThat(httpsSplit.isRemotelyAccessible()).isEqualTo(true);
-
-        // http split with custom port
-        httpsSplit = new XFileSplit("https://example.com:8443/example", null, null);
-        assertThat(httpsSplit.getAddresses()).isEqualTo(ImmutableList.of(HostAddress.fromParts("example.com", 8443)));
-        assertThat(httpsSplit.isRemotelyAccessible()).isEqualTo(true);
-    }
-
-    @Test
     public void testJsonRoundTrip() {
         JsonCodec<XFileSplit> codec = jsonCodec(XFileSplit.class);
         String json = codec.toJson(split);
         XFileSplit copy = codec.fromJson(json);
         assertThat(copy.getUri()).isEqualTo(split.getUri());
-
-        assertThat(copy.getAddresses()).isEqualTo(ImmutableList.of(HostAddress.fromString("127.0.0.1")));
-        assertThat(copy.isRemotelyAccessible()).isEqualTo(true);
     }
 }

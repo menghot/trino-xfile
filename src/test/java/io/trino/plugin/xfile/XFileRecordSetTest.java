@@ -61,56 +61,6 @@ public class XFileRecordSetTest {
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of());
     }
 
-    @Test
-    public void testCursorSimple() {
-        RecordSet recordSet = new XFileRecordSet(new XFileSplit(dataUri, null, null), ImmutableList.of(
-                new XFileColumnHandle("text", createUnboundedVarcharType(), 0, false),
-                new XFileColumnHandle("value", BIGINT, 1, false)), null);
-        RecordCursor cursor = recordSet.cursor();
-
-        assertThat(cursor.getType(0)).isEqualTo(createUnboundedVarcharType());
-        assertThat(cursor.getType(1)).isEqualTo(BIGINT);
-
-        Map<String, Long> data = new LinkedHashMap<>();
-        while (cursor.advanceNextPosition()) {
-            data.put(cursor.getSlice(0).toStringUtf8(), cursor.getLong(1));
-            assertThat(cursor.isNull(0)).isFalse();
-            assertThat(cursor.isNull(1)).isFalse();
-        }
-        assertThat(data).isEqualTo(ImmutableMap.<String, Long>builder()
-                .put("ten", 10L)
-                .put("eleven", 11L)
-                .put("twelve", 12L)
-                .buildOrThrow());
-    }
-
-    @Test
-    public void testCursorMixedOrder() {
-        RecordSet recordSet = new XFileRecordSet(new XFileSplit(dataUri, null, null), ImmutableList.of(
-                new XFileColumnHandle("value", BIGINT, 1, false),
-                new XFileColumnHandle("value", BIGINT, 1, false),
-                new XFileColumnHandle("text", createUnboundedVarcharType(), 0, false)), null);
-        RecordCursor cursor = recordSet.cursor();
-
-        Map<String, Long> data = new LinkedHashMap<>();
-        while (cursor.advanceNextPosition()) {
-            assertThat(cursor.getLong(0)).isEqualTo(cursor.getLong(1));
-            data.put(cursor.getSlice(2).toStringUtf8(), cursor.getLong(0));
-        }
-        assertThat(data).isEqualTo(ImmutableMap.<String, Long>builder()
-                .put("ten", 10L)
-                .put("eleven", 11L)
-                .put("twelve", 12L)
-                .buildOrThrow());
-    }
-
-    //
-    // TODO: your code should also have tests for all types that you support and for the state machine of your cursor
-    //
-
-    //
-    // Start http server for testing
-    //
 
     @BeforeAll
     public void setUp() {

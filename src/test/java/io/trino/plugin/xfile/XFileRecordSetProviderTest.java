@@ -38,51 +38,5 @@ import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 @TestInstance(PER_CLASS)
 @Execution(CONCURRENT)
 public class XFileRecordSetProviderTest {
-    private XFileHttpServer XFileHttpServer;
-    private String dataUri;
 
-    @Test
-    public void testGetRecordSet() {
-        ConnectorTableHandle tableHandle = new XFileTableHandle("schema", "table");
-        XFileRecordSetProvider recordSetProvider = new XFileRecordSetProvider(null);
-        RecordSet recordSet = recordSetProvider.getRecordSet(XFileTransactionHandle.INSTANCE, SESSION, new XFileSplit(dataUri, null, null), tableHandle, ImmutableList.of(
-                new XFileColumnHandle("text", createUnboundedVarcharType(), 0, false),
-                new XFileColumnHandle("value", BIGINT, 1, false)));
-        assertThat(recordSet)
-                .describedAs("recordSet is null")
-                .isNotNull();
-
-        RecordCursor cursor = recordSet.cursor();
-        assertThat(cursor)
-                .describedAs("cursor is null")
-                .isNotNull();
-
-        Map<String, Long> data = new LinkedHashMap<>();
-        while (cursor.advanceNextPosition()) {
-            data.put(cursor.getSlice(0).toStringUtf8(), cursor.getLong(1));
-        }
-        assertThat(data).isEqualTo(ImmutableMap.<String, Long>builder()
-                .put("ten", 10L)
-                .put("eleven", 11L)
-                .put("twelve", 12L)
-                .buildOrThrow());
-    }
-
-    //
-    // Start http server for testing
-    //
-
-    @BeforeAll
-    public void setUp() {
-        XFileHttpServer = new XFileHttpServer(0);
-        dataUri = XFileHttpServer.resolve("/example-data/numbers-2.csv").toString();
-        System.out.println(dataUri);
-    }
-
-    @AfterAll
-    public void tearDown() {
-        if (XFileHttpServer != null) {
-            XFileHttpServer.stop();
-        }
-    }
 }

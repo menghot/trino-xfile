@@ -49,7 +49,7 @@ public class XFileConnectorFactory
         Bootstrap app = new Bootstrap(
                 new JsonModule(),
                 new TypeDeserializerModule(context.getTypeManager()),
-                new ExampleFileSystemModule(catalogName, context),
+                new XFileFileSystemModule(catalogName, context),
 
                 binder -> {
                     binder.bind(OpenTelemetry.class).toInstance(context.getOpenTelemetry());
@@ -68,12 +68,12 @@ public class XFileConnectorFactory
         return injector.getInstance(XFileConnector.class);
     }
 
-    public static class ExampleFileSystemModule extends AbstractConfigurationAwareModule {
+    public static class XFileFileSystemModule extends AbstractConfigurationAwareModule {
         private final String catalogName;
         private final NodeManager nodeManager;
         private final OpenTelemetry openTelemetry;
 
-        public ExampleFileSystemModule(String catalogName, ConnectorContext context) {
+        public XFileFileSystemModule(String catalogName, ConnectorContext context) {
             this.catalogName = requireNonNull(catalogName, "catalogName is null");
             this.nodeManager = context.getNodeManager();
             this.openTelemetry = context.getOpenTelemetry();

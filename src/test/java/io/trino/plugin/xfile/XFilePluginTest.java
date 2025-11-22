@@ -80,7 +80,7 @@ public class XFilePluginTest {
         queryRunner.execute("show catalogs").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("catalog: %s", r.toString()));
 
-        queryRunner.execute("create schema xfile.local WITH (\"location\"='local:///')");
+        //queryRunner.execute("create schema xfile.local WITH (\"location\"='local:///')");
 
         queryRunner.execute("show schemas from xfile").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("schemas: %s", r.toString()));

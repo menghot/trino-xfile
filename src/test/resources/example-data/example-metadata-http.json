@@ -1,36 +1,16 @@
 {
     "schemas" : [
         {
-            "name" : "s3",
+            "name" : "s3_files",
             "properties" : {
                 "location": "s3://hive/warehouse/ods.db"
             }
         },
         {
-            "name" : "preset",
+            "name" : "local_files",
             "properties" : {
-                "key1":"value1",
-                "key2":"value1"
-            },
-            "tables" : [
-                {
-                    "name": "table1",
-                    "properties" : {
-                        "key1":"value1",
-                        "key2":"value1"
-                    },
-                    "columns": [
-                        {
-                            "name": "text",
-                            "type": "VARCHAR"
-                        },
-                        {
-                            "name": "value",
-                            "type": "BIGINT"
-                        }
-                    ]
-                }
-            ]
+              "location": "local:///"
+            }
         }
     ]
 }

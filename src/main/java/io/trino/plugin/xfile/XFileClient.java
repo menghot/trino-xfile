@@ -23,5 +23,5 @@ public interface XFileClient {
 
     void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner);
 
-    public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode);
+    void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode);
 }

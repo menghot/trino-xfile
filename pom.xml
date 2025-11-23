@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.trino</groupId>
         <artifactId>trino-root</artifactId>
-        <version>476</version>
+        <version>478</version>
     </parent>
 
     <artifactId>trino-xfile</artifactId>
@@ -25,15 +25,15 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.guava</groupId>-->
+        <!--            <artifactId>guava</artifactId>-->
+        <!--        </dependency>-->
 
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.inject</groupId>-->
+        <!--            <artifactId>guice</artifactId>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.opencsv</groupId>

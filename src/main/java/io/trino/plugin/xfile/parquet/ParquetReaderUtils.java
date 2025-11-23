@@ -141,7 +141,7 @@ public class ParquetReaderUtils {
     public static class XFileParquetReader extends ParquetReader {
 
         public XFileParquetReader(Optional<String> fileCreatedBy, List<Column> columnFields, boolean appendRowNumberColumn, List<RowGroupInfo> rowGroups, ParquetDataSource dataSource, DateTimeZone timeZone, AggregatedMemoryContext memoryContext, ParquetReaderOptions options, Function<Exception, RuntimeException> exceptionTransform, Optional<TupleDomainParquetPredicate> parquetPredicate, Optional<ParquetWriteValidation> writeValidation) throws IOException {
-            super(fileCreatedBy, columnFields, appendRowNumberColumn, rowGroups, dataSource, timeZone, memoryContext, options, exceptionTransform, parquetPredicate, writeValidation);
+            super(fileCreatedBy, columnFields, appendRowNumberColumn, rowGroups, dataSource, timeZone, memoryContext, options, exceptionTransform, parquetPredicate, writeValidation, Optional.empty());
         }
 
         @Override

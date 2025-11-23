@@ -11,6 +11,7 @@ import io.trino.parquet.metadata.FileMetadata;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
 import io.trino.plugin.xfile.XFileColumnHandle;
+import io.trino.plugin.xfile.XFileTableHandle;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
 import io.trino.spi.connector.ColumnHandle;
 import io.trino.spi.connector.ColumnMetadata;
@@ -30,19 +31,12 @@ import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeT
 
 public class XFileTableMetadataUtils {
 
-    public static Map<String, ColumnHandle> getCsvFileColumnHandles(TrinoFileSystem trinoFileSystem, String tableName) {
+    public static Map<String, ColumnHandle> getCsvFileColumnHandles(TrinoFileSystem trinoFileSystem, XFileTableHandle xFileTableHandle) {
         ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
         AtomicInteger index = new AtomicInteger();
-
-        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName)));
-        Iterator<String[]> lineIterator = csvReader.iterator();
-
-        if (lineIterator.hasNext()) {
-            String[] fields = lineIterator.next();
-            for (String field : fields) {
-                String colName = field.trim();
-                columnHandles.put(colName, new XFileColumnHandle(colName, VarcharType.createUnboundedVarcharType(), index.getAndIncrement(), false));
-            }
+        for(ColumnMetadata columnsMetadata:  getCsvConnectorTableMetadata(trinoFileSystem, xFileTableHandle.getSchemaTableName()).getColumns()) {
+            String colName = columnsMetadata.getName();
+            columnHandles.put(colName, new XFileColumnHandle(colName, columnsMetadata.getType(), index.getAndIncrement(), false));
         }
         return columnHandles.buildOrThrow();
     }
@@ -58,7 +52,6 @@ public class XFileTableMetadataUtils {
                 columnsMetadata.add(new ColumnMetadata(field.trim(), VarcharType.createUnboundedVarcharType()));
             }
         }
-
         return new ConnectorTableMetadata(tableName, columnsMetadata.build());
     }
 

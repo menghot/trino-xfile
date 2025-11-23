@@ -21,6 +21,7 @@ import io.airlift.json.JsonModule;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.trino.filesystem.manager.FileSystemModule;
+import io.trino.plugin.base.ConnectorContextModule;
 import io.trino.plugin.base.TypeDeserializerModule;
 import io.trino.spi.NodeManager;
 import io.trino.spi.catalog.CatalogName;
@@ -48,7 +49,8 @@ public class XFileConnectorFactory
         // A plugin is not required to use Guice; it is just very convenient
         Bootstrap app = new Bootstrap(
                 new JsonModule(),
-                new TypeDeserializerModule(context.getTypeManager()),
+                new TypeDeserializerModule(),
+                new ConnectorContextModule(catalogName, context),
                 new XFileFileSystemModule(catalogName, context),
 
                 binder -> {
@@ -70,19 +72,17 @@ public class XFileConnectorFactory
 
     public static class XFileFileSystemModule extends AbstractConfigurationAwareModule {
         private final String catalogName;
-        private final NodeManager nodeManager;
-        private final OpenTelemetry openTelemetry;
+        private final ConnectorContext context;
 
         public XFileFileSystemModule(String catalogName, ConnectorContext context) {
             this.catalogName = requireNonNull(catalogName, "catalogName is null");
-            this.nodeManager = context.getNodeManager();
-            this.openTelemetry = context.getOpenTelemetry();
+            this.context = context;
         }
 
         @Override
         protected void setup(Binder binder) {
             System.out.println(catalogName);
-            install(new FileSystemModule(catalogName, nodeManager, openTelemetry, true));
+            install(new FileSystemModule(catalogName, context, true));
         }
     }
 }

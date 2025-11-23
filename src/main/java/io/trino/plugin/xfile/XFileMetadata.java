@@ -46,10 +46,6 @@ public class XFileMetadata
 
     @Override
     public List<String> listSchemaNames(ConnectorSession session) {
-        return listSchemaNames();
-    }
-
-    public List<String> listSchemaNames() {
         return ImmutableList.copyOf(xFileClient.getSchemaNames());
     }
 
@@ -80,7 +76,7 @@ public class XFileMetadata
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
 
-        SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).toSchemaTableName();
+        SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
         // 1. Get table metadata from parquet/csv file
         if (schemaTableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
@@ -130,17 +126,15 @@ public class XFileMetadata
 
     @Override
     public List<SchemaTableName> listTables(ConnectorSession session, Optional<String> optionalSchemaName) {
-
         // If schema not preset, retrieve all schemas
         Set<String> schemaNames = optionalSchemaName.map(ImmutableSet::of)
                 .orElseGet(() -> ImmutableSet.copyOf(xFileClient.getSchemaNames()));
-
         ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
+
         for (String schemaName : schemaNames) {
             XFileSchema xFileSchema = xFileClient.getSchema(schemaName);
             Object location = xFileSchema.getProperties().get("location");
             if (location != null) {
-                // Auto discovery files as tables
                 TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
                 try {
                     FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(location.toString()));
@@ -154,10 +148,6 @@ public class XFileMetadata
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            } else {
-                for (String tableName : xFileClient.getTableNames(schemaName)) {
-                    builder.add(new SchemaTableName(schemaName, tableName));
-                }
             }
         }
         return builder.build();
@@ -167,7 +157,6 @@ public class XFileMetadata
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle) {
         XFileTableHandle xFileTableHandle = (XFileTableHandle) tableHandle;
         if (xFileTableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
-
             if (xFileTableHandle.getTableName().endsWith(".parquet")) {
                 ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
                 AtomicInteger index = new AtomicInteger();
@@ -175,28 +164,11 @@ public class XFileMetadata
                     columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
                 }
                 return columnHandles.buildOrThrow();
+            } else {
+                return XFileTableMetadataUtils.getCsvFileColumnHandles(trinoFileSystemFactory.create(session), xFileTableHandle);
             }
-
-            return XFileTableMetadataUtils.getCsvFileColumnHandles(trinoFileSystemFactory.create(session), xFileTableHandle.getTableName());
         }
-
-        XFileTable table = xFileClient.getTable(xFileTableHandle.getSchemaName(), xFileTableHandle.getTableName());
-        if (table == null) {
-            throw new TableNotFoundException(xFileTableHandle.toSchemaTableName());
-        }
-
-        ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
-        AtomicInteger index = new AtomicInteger();
-        for (ColumnMetadata column : table.getColumnsMetadata()) {
-            columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
-        }
-
-        Arrays.stream(XFileInternalColumn.values()).iterator().forEachRemaining(column -> columnHandles.put(column.getName(),
-                new XFileColumnHandle(column.getName(),
-                        VarcharType.createUnboundedVarcharType(),
-                        index.getAndIncrement(), true)));
-
-        return columnHandles.buildOrThrow();
+        throw new RuntimeException("Unsupported table handle type: " + tableHandle);
     }
 
     @Override

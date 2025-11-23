@@ -49,7 +49,7 @@ public final class XFileTableHandle
         return tableName;
     }
 
-    public SchemaTableName toSchemaTableName() {
+    public SchemaTableName getSchemaTableName() {
         return new SchemaTableName(schemaName, tableName);
     }
 

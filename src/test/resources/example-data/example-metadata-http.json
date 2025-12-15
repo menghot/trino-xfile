@@ -1,16 +1,18 @@
 {
-    "schemas" : [
-        {
-            "name" : "s3_files",
-            "properties" : {
-                "location": "s3://hive/warehouse/ods.db"
-            }
-        },
-        {
-            "name" : "local_files",
-            "properties" : {
-              "location": "local:///"
-            }
-        }
-    ]
+  "version": "v1",
+  "modifiedTime": 100000,
+  "schemas": [
+    {
+      "name": "s3_files",
+      "properties": {
+        "location": "s3://hive/warehouse/ods.db"
+      }
+    },
+    {
+      "name": "local_files",
+      "properties": {
+        "location": "local:///"
+      }
+    }
+  ]
 }

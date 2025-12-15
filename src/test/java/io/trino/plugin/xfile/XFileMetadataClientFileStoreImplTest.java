@@ -21,11 +21,11 @@ import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class XFileClientSimpleTest {
+public class XFileMetadataClientFileStoreImplTest {
     @Test
     public void testMetadata()
             throws Exception {
-        URL metadataUrl = Resources.getResource(XFileClientSimpleTest.class, "/example-data/example-metadata.json");
+        URL metadataUrl = Resources.getResource(XFileMetadataClientFileStoreImplTest.class, "/example-data/example-metadata.json");
         assertThat(metadataUrl)
                 .describedAs("metadataUrl is null")
                 .isNotNull();

@@ -16,19 +16,17 @@ package io.trino.plugin.xfile;
 import io.airlift.configuration.Config;
 import jakarta.validation.constraints.NotNull;
 
-import java.net.URI;
-
 public class XFileConfig {
-    private URI metadataUri;
+    private String metadataLocation;
 
     @NotNull
-    public URI getMetadataUri() {
-        return metadataUri;
+    public String getMetadataLocation() {
+        return metadataLocation;
     }
 
-    @Config("metadata-uri")
-    public XFileConfig setMetadataUri(URI metadataUri) {
-        this.metadataUri = metadataUri;
+    @Config("metadata-location")
+    public XFileConfig setMetadataLocation(String metadataLocation) {
+        this.metadataLocation = metadataLocation;
         return this;
     }
 }

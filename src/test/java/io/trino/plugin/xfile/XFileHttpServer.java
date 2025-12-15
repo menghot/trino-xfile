@@ -71,7 +71,7 @@ public class XFileHttpServer {
         @Override
         protected void doGet(HttpServletRequest request, HttpServletResponse response)
                 throws IOException {
-            URL dataUrl = Resources.getResource(XFileClientSimpleTest.class, request.getPathInfo());
+            URL dataUrl = Resources.getResource(XFileMetadataClientFileStoreImplTest.class, request.getPathInfo());
             Resources.asByteSource(dataUrl).copyTo(response.getOutputStream());
         }
     }

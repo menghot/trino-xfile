@@ -13,21 +13,12 @@
  */
 package io.trino.plugin.xfile;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
-import io.trino.spi.TrinoException;
-import io.trino.spi.connector.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.net.URL;
-import java.util.Optional;
 
-import static io.trino.spi.type.BigintType.BIGINT;
-import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
-import static io.trino.testing.TestingConnectorSession.SESSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_METHOD;
@@ -40,7 +31,7 @@ public class XFileMetadataTest {
     @BeforeEach
     public void setUp()
             throws Exception {
-        URL metadataUrl = Resources.getResource(XFileClientSimpleTest.class, "/example-data/example-metadata.json");
+        URL metadataUrl = Resources.getResource(XFileMetadataClientFileStoreImplTest.class, "/example-data/example-metadata.json");
         assertThat(metadataUrl)
                 .describedAs("metadataUrl is null")
                 .isNotNull();

@@ -23,7 +23,6 @@ import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
-import io.trino.spi.type.VarcharType;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,11 +33,11 @@ import static java.util.Objects.requireNonNull;
 
 public class XFileMetadata
         implements ConnectorMetadata {
-    private final XFileClientSimple xFileClient;
+    private final XFileMetadataClientFileStoreImpl xFileClient;
     private final TrinoFileSystemFactory trinoFileSystemFactory;
 
     @Inject
-    public XFileMetadata(XFileClientSimple xFileClient, TrinoFileSystemFactory trinoFileSystemFactory) {
+    public XFileMetadata(XFileMetadataClientFileStoreImpl xFileClient, TrinoFileSystemFactory trinoFileSystemFactory) {
         this.xFileClient = requireNonNull(xFileClient, "XFileClientSimple is null");
         this.trinoFileSystemFactory = requireNonNull(trinoFileSystemFactory, "exampleFileSystemFactory is null");
     }

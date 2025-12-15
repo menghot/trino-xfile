@@ -13,41 +13,49 @@
  */
 package io.trino.plugin.xfile;
 
-import com.google.common.io.Resources;
 import com.google.inject.Inject;
 import io.airlift.json.JsonCodec;
+import io.trino.filesystem.Location;
+import io.trino.filesystem.TrinoFileSystem;
+import io.trino.filesystem.TrinoFileSystemFactory;
+import io.trino.filesystem.TrinoInputStream;
+import io.trino.spi.StandardErrorCode;
+import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ConnectorSession;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SaveMode;
+import io.trino.spi.security.ConnectorIdentity;
 import io.trino.spi.security.TrinoPrincipal;
 
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 
-public class XFileClientSimple implements XFileClient {
+public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
 
     private final List<XFileSchema> schemas;
+    private TrinoFileSystemFactory trinoFileSystemFactory;
 
     @Inject
-    public XFileClientSimple(
+    public XFileMetadataClientFileStoreImpl(
             XFileConfig config,
-            JsonCodec<Map<String, List<XFileSchema>>> jsonCodec) {
-        try {
-            URL result = config.getMetadataUri().toURL();
-            String json = Resources.toString(result, UTF_8);
-            Map<String, List<XFileSchema>> catalog = jsonCodec.fromJson(json);
-            schemas = catalog.get("schemas");
+            TrinoFileSystemFactory trinoFileSystemFactory,
+            JsonCodec<XFileCatalog> jsonCodec) {
+
+        TrinoFileSystem fileSystem = trinoFileSystemFactory.create(ConnectorIdentity.ofUser("admin"));
+        try (TrinoInputStream inputStream = fileSystem.newInputFile(Location.of("s3://metastore/example-metadata-http.json")).newStream()) {
+            XFileCatalog catalog = jsonCodec.fromJson(inputStream);
+            schemas = catalog.getSchemas();
+            System.out.println(catalog);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new TrinoException(StandardErrorCode.CONFIGURATION_INVALID, e);
         }
     }
+
 
     public List<XFileSchema> getSchemas() {
         return schemas;
@@ -65,25 +73,14 @@ public class XFileClientSimple implements XFileClient {
     }
 
     @Override
-    public Set<String> getTableNames(String schemaName) {
-        return schemas
-                .stream().filter(schema -> schema.getName().equalsIgnoreCase(schemaName))
-                .findFirst()
-                .map(schema -> schema.getTables().stream()
-                        .map(XFileTable::getName)
-                        .collect(Collectors.toSet())).orElse(Set.of());
-
-    }
-
-    @Override
     public XFileTable getTable(String schema, String tableName) {
         requireNonNull(schema, "schema is null");
         requireNonNull(tableName, "tableName is null");
-        Optional<XFileSchema>  xFileSchema=  schemas.stream().filter(s -> s.getName().equals(schema)).findFirst();
-       if (xFileSchema.isPresent() && xFileSchema.get().getTables() != null) {
-          return xFileSchema.get().getTables().stream().filter(t -> t.getName().equals(tableName)).findFirst().orElse(null);
-       }
-       return null;
+        Optional<XFileSchema> xFileSchema = schemas.stream().filter(s -> s.getName().equals(schema)).findFirst();
+        if (xFileSchema.isPresent() && xFileSchema.get().getTables() != null) {
+            return xFileSchema.get().getTables().stream().filter(t -> t.getName().equals(tableName)).findFirst().orElse(null);
+        }
+        return null;
     }
 
     @Override

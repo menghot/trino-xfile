@@ -34,7 +34,7 @@ public class XFileTableMetadataUtils {
     public static Map<String, ColumnHandle> getCsvFileColumnHandles(TrinoFileSystem trinoFileSystem, XFileTableHandle xFileTableHandle) {
         ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
         AtomicInteger index = new AtomicInteger();
-        for(ColumnMetadata columnsMetadata:  getCsvConnectorTableMetadata(trinoFileSystem, xFileTableHandle.getSchemaTableName()).getColumns()) {
+        for (ColumnMetadata columnsMetadata : getCsvConnectorTableMetadata(trinoFileSystem, xFileTableHandle.getSchemaTableName()).getColumns()) {
             String colName = columnsMetadata.getName();
             columnHandles.put(colName, new XFileColumnHandle(colName, columnsMetadata.getType(), index.getAndIncrement(), false));
         }

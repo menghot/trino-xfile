@@ -31,13 +31,13 @@ public class XFilePluginTest {
                 throws Exception {
             DistributedQueryRunner queryRunner = super.build();
             try {
-                URL metadataUrl = Resources.getResource(XFileClientSimpleTest.class, "/example-data/example-metadata-http.json");
+                URL metadataUrl = Resources.getResource(XFileMetadataClientFileStoreImplTest.class, "/example-data/example-metadata-http.json");
                 queryRunner.installPlugin(new XFilePlugin());
 
                 // create xfile catalog
                 queryRunner.createCatalog("xfile", "xfile",
                         ImmutableMap.of(
-                                "metadata-uri", metadataUrl.toURI().toString(),
+                                "metadata-location", metadataUrl.toURI().toString(),
 
                                 // 1. define s3 file system
                                 "fs.native-s3.enabled", "true",

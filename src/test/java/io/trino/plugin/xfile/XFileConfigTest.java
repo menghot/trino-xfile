@@ -25,7 +25,7 @@ public class XFileConfigTest {
     @Test
     public void testDefaults() {
         assertRecordedDefaults(recordDefaults(XFileConfig.class)
-                .setMetadataUri(null));
+                .setMetadataLocation(null));
     }
 
     @Test
@@ -33,7 +33,7 @@ public class XFileConfigTest {
         Map<String, String> properties = ImmutableMap.of("metadata-uri", "file://test.json");
 
         XFileConfig expected = new XFileConfig()
-                .setMetadataUri(URI.create("file://test.json"));
+                .setMetadataLocation("file://test.json");
 
         assertFullMapping(properties, expected);
     }

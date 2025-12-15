@@ -18,19 +18,11 @@ import com.google.common.collect.ImmutableMap;
 import io.trino.Session;
 import io.trino.connector.CatalogHandle;
 import io.trino.spi.TrinoException;
-import io.trino.spi.connector.CatalogSchemaName;
-import io.trino.spi.connector.ColumnMetadata;
-import io.trino.spi.connector.ConnectorTableMetadata;
-import io.trino.spi.connector.EntityKindAndName;
-import io.trino.spi.connector.SchemaTableName;
+import io.trino.spi.connector.*;
 import io.trino.spi.security.PrincipalType;
 import io.trino.spi.security.TrinoPrincipal;
 import io.trino.spi.type.Type;
-import io.trino.sql.tree.GrantorSpecification;
-import io.trino.sql.tree.Identifier;
-import io.trino.sql.tree.Node;
-import io.trino.sql.tree.PrincipalSpecification;
-import io.trino.sql.tree.QualifiedName;
+import io.trino.sql.tree.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,14 +30,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static io.trino.SystemSessionProperties.isLegacyCatalogRoles;
-import static io.trino.spi.StandardErrorCode.CATALOG_NOT_FOUND;
-import static io.trino.spi.StandardErrorCode.GENERIC_USER_ERROR;
-import static io.trino.spi.StandardErrorCode.INVALID_ENTITY_KIND;
-import static io.trino.spi.StandardErrorCode.MISSING_CATALOG_NAME;
-import static io.trino.spi.StandardErrorCode.MISSING_SCHEMA_NAME;
-import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
-import static io.trino.spi.StandardErrorCode.ROLE_NOT_FOUND;
-import static io.trino.spi.StandardErrorCode.SYNTAX_ERROR;
+import static io.trino.spi.StandardErrorCode.*;
 import static io.trino.spi.security.PrincipalType.ROLE;
 import static io.trino.spi.security.PrincipalType.USER;
 import static io.trino.sql.analyzer.SemanticExceptions.semanticException;
@@ -53,12 +38,11 @@ import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 
-public final class MetadataUtil
-{
-    private MetadataUtil() {}
+public final class MetadataUtil {
+    private MetadataUtil() {
+    }
 
-    public static void checkTableName(String catalogName, Optional<String> schemaName, Optional<String> tableName)
-    {
+    public static void checkTableName(String catalogName, Optional<String> schemaName, Optional<String> tableName) {
         checkCatalogName(catalogName);
         schemaName.ifPresent(name -> checkLowerCase(name, "schemaName"));
         tableName.ifPresent(name -> checkLowerCase(name, "tableName"));
@@ -66,30 +50,25 @@ public final class MetadataUtil
         checkArgument(schemaName.isPresent() || tableName.isEmpty(), "tableName specified but schemaName is missing");
     }
 
-    public static String checkCatalogName(String catalogName)
-    {
+    public static String checkCatalogName(String catalogName) {
         return checkLowerCase(catalogName, "catalogName");
     }
 
-    public static String checkSchemaName(String schemaName)
-    {
+    public static String checkSchemaName(String schemaName) {
         return checkLowerCase(schemaName, "schemaName");
     }
 
-    public static String checkTableName(String tableName)
-    {
+    public static String checkTableName(String tableName) {
         return checkLowerCase(tableName, "tableName");
     }
 
-    public static void checkObjectName(String catalogName, String schemaName, String objectName)
-    {
+    public static void checkObjectName(String catalogName, String schemaName, String objectName) {
         checkLowerCase(catalogName, "catalogName");
         checkLowerCase(schemaName, "schemaName");
         checkLowerCase(objectName, "objectName");
     }
 
-    public static String checkLowerCase(String value, String name)
-    {
+    public static String checkLowerCase(String value, String name) {
         if (value == null) {
             throw new NullPointerException(format("%s is null", name));
         }
@@ -99,8 +78,7 @@ public final class MetadataUtil
         return value;
     }
 
-    public static ColumnMetadata findColumnMetadata(ConnectorTableMetadata tableMetadata, String columnName)
-    {
+    public static ColumnMetadata findColumnMetadata(ConnectorTableMetadata tableMetadata, String columnName) {
         for (ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
             if (columnName.equals(columnMetadata.getName())) {
                 return columnMetadata;
@@ -109,8 +87,7 @@ public final class MetadataUtil
         return null;
     }
 
-    public static CatalogHandle getRequiredCatalogHandle(Metadata metadata, Session session, Node node, String catalogName)
-    {
+    public static CatalogHandle getRequiredCatalogHandle(Metadata metadata, Session session, Node node, String catalogName) {
         return metadata.getCatalogHandle(session, catalogName)
                 .orElseThrow(() -> semanticException(CATALOG_NOT_FOUND, node, "Catalog '%s' not found", catalogName));
     }
@@ -119,8 +96,7 @@ public final class MetadataUtil
      * If necessary, fill in missing catalog and schema names from the session catalog and schema
      * in the supplied entity name, and throw an exception if they don't exist.
      */
-    public static List<String> fillInNameParts(Session session, Node node, String entityKind, List<String> name)
-    {
+    public static List<String> fillInNameParts(Session session, Node node, String entityKind, List<String> name) {
         switch (entityKind) {
             case "SCHEMA":
                 switch (name.size()) {
@@ -159,13 +135,11 @@ public final class MetadataUtil
         return name;
     }
 
-    private static String joinName(List<String> name)
-    {
+    private static String joinName(List<String> name) {
         return name.stream().collect(Collectors.joining("."));
     }
 
-    public static CatalogSchemaName createCatalogSchemaName(Session session, Node node, Optional<QualifiedName> schema)
-    {
+    public static CatalogSchemaName createCatalogSchemaName(Session session, Node node, Optional<QualifiedName> schema) {
         String catalogName = session.getCatalog().orElse(null);
         String schemaName = session.getSchema().orElse(null);
 
@@ -190,8 +164,7 @@ public final class MetadataUtil
         return new CatalogSchemaName(catalogName, schemaName);
     }
 
-    public static QualifiedObjectName createQualifiedObjectName(Session session, Node node, QualifiedName name)
-    {
+    public static QualifiedObjectName createQualifiedObjectName(Session session, Node node, QualifiedName name) {
         requireNonNull(session, "session is null");
         requireNonNull(name, "name is null");
         if (name.getParts().size() > 3) {
@@ -208,13 +181,11 @@ public final class MetadataUtil
         return new QualifiedObjectName(catalogName, schemaName, objectName);
     }
 
-    public static EntityKindAndName createEntityKindAndName(String entityKind, QualifiedName name)
-    {
+    public static EntityKindAndName createEntityKindAndName(String entityKind, QualifiedName name) {
         return new EntityKindAndName(entityKind, name.getParts());
     }
 
-    public static TrinoPrincipal createPrincipal(Session session, GrantorSpecification specification)
-    {
+    public static TrinoPrincipal createPrincipal(Session session, GrantorSpecification specification) {
         GrantorSpecification.Type type = specification.type();
         return switch (type) {
             case PRINCIPAL -> createPrincipal(specification.principal().get());
@@ -224,8 +195,7 @@ public final class MetadataUtil
         };
     }
 
-    public static TrinoPrincipal createPrincipal(PrincipalSpecification specification)
-    {
+    public static TrinoPrincipal createPrincipal(PrincipalSpecification specification) {
         PrincipalSpecification.Type type = specification.type();
         return switch (type) {
             case UNSPECIFIED, USER -> new TrinoPrincipal(USER, specification.name().getValue());
@@ -233,17 +203,17 @@ public final class MetadataUtil
         };
     }
 
-    public static PrincipalSpecification createPrincipal(TrinoPrincipal principal)
-    {
+    public static PrincipalSpecification createPrincipal(TrinoPrincipal principal) {
         PrincipalType type = principal.getType();
         return switch (type) {
-            case USER -> new PrincipalSpecification(PrincipalSpecification.Type.USER, new Identifier(principal.getName()));
-            case ROLE -> new PrincipalSpecification(PrincipalSpecification.Type.ROLE, new Identifier(principal.getName()));
+            case USER ->
+                    new PrincipalSpecification(PrincipalSpecification.Type.USER, new Identifier(principal.getName()));
+            case ROLE ->
+                    new PrincipalSpecification(PrincipalSpecification.Type.ROLE, new Identifier(principal.getName()));
         };
     }
 
-    public static boolean tableExists(Metadata metadata, Session session, String table)
-    {
+    public static boolean tableExists(Metadata metadata, Session session, String table) {
         if (session.getCatalog().isEmpty() || session.getSchema().isEmpty()) {
             return false;
         }
@@ -251,22 +221,19 @@ public final class MetadataUtil
         return metadata.getTableHandle(session, name).isPresent();
     }
 
-    public static void checkRoleExists(Session session, Node node, Metadata metadata, TrinoPrincipal principal, Optional<String> catalog)
-    {
+    public static void checkRoleExists(Session session, Node node, Metadata metadata, TrinoPrincipal principal, Optional<String> catalog) {
         if (principal.getType() == ROLE) {
             checkRoleExists(session, node, metadata, principal.getName(), catalog);
         }
     }
 
-    public static void checkRoleExists(Session session, Node node, Metadata metadata, String role, Optional<String> catalog)
-    {
+    public static void checkRoleExists(Session session, Node node, Metadata metadata, String role, Optional<String> catalog) {
         if (!metadata.roleExists(session, role, catalog)) {
             throw semanticException(ROLE_NOT_FOUND, node, "Role '%s' does not exist%s", role, catalog.map(c -> format(" in catalog '%s'", c)).orElse(""));
         }
     }
 
-    public static Optional<String> processRoleCommandCatalog(Metadata metadata, Session session, Node node, Optional<String> catalog)
-    {
+    public static Optional<String> processRoleCommandCatalog(Metadata metadata, Session session, Node node, Optional<String> catalog) {
         boolean legacyCatalogRoles = isLegacyCatalogRoles(session);
         // old role commands use only supported catalog roles and used session catalog as the default
         if (catalog.isEmpty() && legacyCatalogRoles) {
@@ -284,10 +251,8 @@ public final class MetadataUtil
         return catalog;
     }
 
-    public static class TableMetadataBuilder
-    {
-        public static TableMetadataBuilder tableMetadataBuilder(SchemaTableName tableName)
-        {
+    public static class TableMetadataBuilder {
+        public static TableMetadataBuilder tableMetadataBuilder(SchemaTableName tableName) {
             return new TableMetadataBuilder(tableName);
         }
 
@@ -296,25 +261,21 @@ public final class MetadataUtil
         private final ImmutableMap.Builder<String, Object> properties = ImmutableMap.builder();
         private final Optional<String> comment;
 
-        private TableMetadataBuilder(SchemaTableName tableName)
-        {
+        private TableMetadataBuilder(SchemaTableName tableName) {
             this(tableName, Optional.empty());
         }
 
-        private TableMetadataBuilder(SchemaTableName tableName, Optional<String> comment)
-        {
+        private TableMetadataBuilder(SchemaTableName tableName, Optional<String> comment) {
             this.tableName = tableName;
             this.comment = comment;
         }
 
-        public TableMetadataBuilder column(String columnName, Type type)
-        {
+        public TableMetadataBuilder column(String columnName, Type type) {
             columns.add(new ColumnMetadata(columnName, type));
             return this;
         }
 
-        public TableMetadataBuilder hiddenColumn(String columnName, Type type)
-        {
+        public TableMetadataBuilder hiddenColumn(String columnName, Type type) {
             columns.add(ColumnMetadata.builder()
                     .setName(columnName)
                     .setType(type)
@@ -323,14 +284,12 @@ public final class MetadataUtil
             return this;
         }
 
-        public TableMetadataBuilder property(String name, Object value)
-        {
+        public TableMetadataBuilder property(String name, Object value) {
             properties.put(name, value);
             return this;
         }
 
-        public ConnectorTableMetadata build()
-        {
+        public ConnectorTableMetadata build() {
             return new ConnectorTableMetadata(tableName, columns.build(), properties.buildOrThrow(), comment);
         }
     }

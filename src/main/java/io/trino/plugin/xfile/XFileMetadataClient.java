@@ -9,15 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface XFileClient {
+public interface XFileMetadataClient {
 
     List<XFileSchema> getSchemas();
 
     XFileSchema getSchema(String name);
 
     Set<String> getSchemaNames();
-
-    Set<String> getTableNames(String schema);
 
     XFileTable getTable(String schema, String tableName);
 

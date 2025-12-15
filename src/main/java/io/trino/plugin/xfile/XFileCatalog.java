@@ -17,7 +17,6 @@ public class XFileCatalog {
     }
 
     @JsonProperty
-
     public String getVersion() {
         return version;
     }
@@ -28,8 +27,6 @@ public class XFileCatalog {
 
 
     @JsonProperty
-
-
     public List<XFileSchema> getSchemas() {
         return schemas;
     }

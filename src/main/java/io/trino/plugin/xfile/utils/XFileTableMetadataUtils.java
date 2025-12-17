@@ -1,7 +1,6 @@
 package io.trino.plugin.xfile.utils;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.opencsv.CSVReader;
 import io.trino.filesystem.Location;
 import io.trino.filesystem.TrinoFileSystem;
@@ -10,10 +9,7 @@ import io.trino.parquet.ParquetDataSource;
 import io.trino.parquet.metadata.FileMetadata;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
-import io.trino.plugin.xfile.XFileColumnHandle;
-import io.trino.plugin.xfile.XFileTableHandle;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
-import io.trino.spi.connector.ColumnHandle;
 import io.trino.spi.connector.ColumnMetadata;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SchemaTableName;
@@ -23,22 +19,22 @@ import org.apache.parquet.schema.MessageType;
 
 import java.io.InputStreamReader;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
 
 public class XFileTableMetadataUtils {
 
-    public static Map<String, ColumnHandle> getCsvFileColumnHandles(TrinoFileSystem trinoFileSystem, XFileTableHandle xFileTableHandle) {
-        ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
-        AtomicInteger index = new AtomicInteger();
-        for (ColumnMetadata columnsMetadata : getCsvConnectorTableMetadata(trinoFileSystem, xFileTableHandle.getSchemaTableName()).getColumns()) {
-            String colName = columnsMetadata.getName();
-            columnHandles.put(colName, new XFileColumnHandle(colName, columnsMetadata.getType(), index.getAndIncrement(), false));
+    public static ConnectorTableMetadata readTableMetadataFromFile(TrinoFileSystem trinoFileSystem, SchemaTableName schemaTableName) {
+        if (schemaTableName.getTableName().endsWith(".parquet")) {
+            return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, schemaTableName);
+        } else if (schemaTableName.getTableName().endsWith(".css")) {
+            return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
         }
-        return columnHandles.buildOrThrow();
+
+        // support more file types
+
+        return null;
     }
 
 

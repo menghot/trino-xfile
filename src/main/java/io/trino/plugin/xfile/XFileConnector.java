@@ -24,7 +24,7 @@ import io.trino.spi.transaction.IsolationLevel;
 import java.util.List;
 
 import static io.trino.plugin.xfile.XFileTransactionHandle.INSTANCE;
-import static io.trino.spi.session.PropertyMetadata.stringProperty;
+import static io.trino.spi.session.PropertyMetadata.*;
 import static java.util.Objects.requireNonNull;
 
 public class XFileConnector
@@ -73,8 +73,18 @@ public class XFileConnector
 
     @Override
     public List<PropertyMetadata<?>> getTableProperties() {
-        return new XFileTableProperties().getTableProperties();
-    }
+        return ImmutableList.of(
+                stringProperty(
+                        "format",
+                        "file format, csv|csv.gz|parquet|json|xls|xlsx",
+                        null,
+                        false),
+                integerProperty(
+                        "max-depth",
+                        "If table name is folder path, set the max depth to search table files",
+                        null,
+                        false)
+        );    }
 
     @Override
     public List<PropertyMetadata<?>> getSchemaProperties() {
@@ -83,7 +93,17 @@ public class XFileConnector
                         "location",
                         "Table system location URI for the table",
                         null,
-                        false));
-
+                        false),
+                stringProperty(
+                        "format",
+                        "file format, csv|csv.gz|parquet|json|xls|xlsx",
+                        null,
+                        false),
+                integerProperty(
+                        "max-depth",
+                        "max depth to search file tales",
+                        null,
+                        false)
+        );
     }
 }

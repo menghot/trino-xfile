@@ -9,7 +9,7 @@ import java.util.Map;
 public class XFileSchema {
     private final String name;
     private final Map<String, Object> properties;
-    private final List<XFileTable> tables;
+    private List<XFileTable> tables;
 
     @JsonCreator
     public XFileSchema(
@@ -22,19 +22,20 @@ public class XFileSchema {
     }
 
     @JsonProperty
-
     public List<XFileTable> getTables() {
         return tables;
     }
 
-    @JsonProperty
+    public void setTables(List<XFileTable> tables) {
+        this.tables = tables;
+    }
 
+    @JsonProperty
     public String getName() {
         return name;
     }
 
     @JsonProperty
-
     public Map<String, Object> getProperties() {
         return properties;
     }

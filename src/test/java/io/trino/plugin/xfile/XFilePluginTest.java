@@ -37,7 +37,7 @@ public class XFilePluginTest {
                 // create xfile catalog
                 queryRunner.createCatalog("xfile", "xfile",
                         ImmutableMap.of(
-                                "metadata-location", metadataUrl.toURI().toString(),
+                                "metadata-location", "s3://metastore/example-metadata-http.json",
 
                                 // 1. define s3 file system
                                 "fs.native-s3.enabled", "true",

@@ -1,18 +1,68 @@
 {
   "version": "v1",
-  "modifiedTime": 100000,
   "schemas": [
     {
-      "name": "s3_files",
+      "name": "css",
       "properties": {
-        "location": "s3://hive/warehouse/ods.db"
+        "location": "s3://hive/warehouse/ods.db",
+        "max-depth": 1
       }
     },
     {
-      "name": "local_files",
+      "name": "clarity",
       "properties": {
-        "location": "local:///"
+        "location": "local:///",
+        "max-depth": 1
       }
+    },
+    {
+      "name": "css2",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
+    },
+    {
+      "name": "css3",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
+    },
+    {
+      "name": "css4",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
+    },
+    {
+      "name": "css5",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
+    },
+    {
+      "name": "css6",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
+    },
+    {
+      "name": "css7",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
+    },
+    {
+      "name": "css8",
+      "properties": {
+        "location": "s3://mes/data"
+      },
+      "tables": []
     }
   ]
 }

@@ -11,15 +11,21 @@ import java.util.Set;
 
 public interface XFileMetadataClient {
 
-    List<XFileSchema> getSchemas();
+    XFileCatalog getXFileCatalog(ConnectorSession session);
 
-    XFileSchema getSchema(String name);
+    List<XFileSchema> getSchemas(ConnectorSession session);
 
-    Set<String> getSchemaNames();
+    XFileSchema getSchema(ConnectorSession session, String name);
 
-    XFileTable getTable(String schema, String tableName);
+    Set<String> getSchemaNames(ConnectorSession session);
+
+    XFileTable getTable(ConnectorSession session, String schema, String tableName);
 
     void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner);
 
     void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode);
+
+    void dropSchema(ConnectorSession session, String schemaName);
+
+    void dropTable(ConnectorSession session, String schemaName, String tableName);
 }

@@ -15,18 +15,15 @@ package io.trino.plugin.xfile;
 
 import com.google.inject.Inject;
 import io.airlift.json.JsonCodec;
-import io.trino.filesystem.Location;
-import io.trino.filesystem.TrinoFileSystem;
-import io.trino.filesystem.TrinoFileSystemFactory;
-import io.trino.filesystem.TrinoInputStream;
+import io.trino.filesystem.*;
 import io.trino.spi.StandardErrorCode;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ConnectorSession;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SaveMode;
-import io.trino.spi.security.ConnectorIdentity;
 import io.trino.spi.security.TrinoPrincipal;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,46 +34,54 @@ import static java.util.Objects.requireNonNull;
 
 public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
 
-    private final List<XFileSchema> schemas;
-    private TrinoFileSystemFactory trinoFileSystemFactory;
+    private final XFileConfig config;
+    private final TrinoFileSystemFactory trinoFileSystemFactory;
+    private final JsonCodec<XFileCatalog> jsonCodec;
+    private volatile XFileCatalog xFileCatalog;
+
+
+    @Override
+    public XFileCatalog getXFileCatalog(ConnectorSession session) {
+        TrinoFileSystem fileSystem = trinoFileSystemFactory.create(session);
+        try (TrinoInputStream inputStream = fileSystem.newInputFile(Location.of(config.getMetadataLocation())).newStream()) {
+            xFileCatalog = jsonCodec.fromJson(inputStream);
+        } catch (IOException e) {
+            throw new TrinoException(StandardErrorCode.CONFIGURATION_INVALID, e);
+        }
+        return xFileCatalog;
+    }
 
     @Inject
     public XFileMetadataClientFileStoreImpl(
             XFileConfig config,
             TrinoFileSystemFactory trinoFileSystemFactory,
             JsonCodec<XFileCatalog> jsonCodec) {
-
-        TrinoFileSystem fileSystem = trinoFileSystemFactory.create(ConnectorIdentity.ofUser("admin"));
-        try (TrinoInputStream inputStream = fileSystem.newInputFile(Location.of("s3://metastore/example-metadata-http.json")).newStream()) {
-            XFileCatalog catalog = jsonCodec.fromJson(inputStream);
-            schemas = catalog.getSchemas();
-            System.out.println(catalog);
-        } catch (Exception e) {
-            throw new TrinoException(StandardErrorCode.CONFIGURATION_INVALID, e);
-        }
+        this.config = config;
+        this.trinoFileSystemFactory = trinoFileSystemFactory;
+        this.jsonCodec = jsonCodec;
     }
 
 
-    public List<XFileSchema> getSchemas() {
-        return schemas;
+    public List<XFileSchema> getSchemas(ConnectorSession session) {
+        getXFileCatalog(session);
+        return xFileCatalog.getSchemas();
     }
 
-    //============================================================
-
-    public XFileSchema getSchema(String name) {
-        return getSchemas().stream().filter(schema -> schema.getName().equals(name)).findFirst().orElse(null);
+    public XFileSchema getSchema(ConnectorSession session, String name) {
+        getXFileCatalog(session);
+        return getSchemas(session).stream().filter(schema -> schema.getName().equals(name)).findFirst().orElse(null);
     }
 
     @Override
-    public Set<String> getSchemaNames() {
-        return schemas.stream().map(XFileSchema::getName).collect(Collectors.toSet());
+    public Set<String> getSchemaNames(ConnectorSession session) {
+        return getSchemas(session).stream().map(XFileSchema::getName).collect(Collectors.toSet());
     }
 
     @Override
-    public XFileTable getTable(String schema, String tableName) {
+    public XFileTable getTable(ConnectorSession session, String schema, String tableName) {
         requireNonNull(schema, "schema is null");
         requireNonNull(tableName, "tableName is null");
-        Optional<XFileSchema> xFileSchema = schemas.stream().filter(s -> s.getName().equals(schema)).findFirst();
+        Optional<XFileSchema> xFileSchema = getSchemas(session).stream().filter(s -> s.getName().equals(schema)).findFirst();
         if (xFileSchema.isPresent() && xFileSchema.get().getTables() != null) {
             return xFileSchema.get().getTables().stream().filter(t -> t.getName().equals(tableName)).findFirst().orElse(null);
         }
@@ -85,25 +90,60 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
 
     @Override
     public void createSchema(ConnectorSession session, String schemaName, Map<String, Object> properties, TrinoPrincipal owner) {
-        schemas.add(new XFileSchema(schemaName, properties, List.of()));
+        getXFileCatalog(session);
+        xFileCatalog.getSchemas().add(new XFileSchema(schemaName, properties, List.of()));
+        saveCatalog(session, xFileCatalog);
     }
+
 
     @Override
     public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
+        getXFileCatalog(session);
+        XFileSchema xFileSchema = getSchema(session, tableMetadata.getTable().getSchemaName());
+        List<XFileColumn> columns = tableMetadata.getColumns().stream().map(
+                c -> new XFileColumn(c.getName(), c.getType())).toList();
 
-        XFileSchema xFileSchema = getSchema(tableMetadata.getTable().getSchemaName());
+        if (xFileSchema.getProperties().containsKey("location")) {
+            throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().getSchemaName());
+        }
 
-        List<XFileColumn> columns = tableMetadata.getColumns().stream().map(c -> new XFileColumn(
-                c.getName(),
-                c.getType()
-        )).toList();
-
-
-        xFileSchema.getTables().add(new
-                XFileTable(
-                tableMetadata.getTable().getTableName(),
-                columns,
-                tableMetadata.getProperties())
+        xFileSchema.getTables().add(
+                new XFileTable(
+                        tableMetadata.getTable().getTableName(),
+                        columns,
+                        tableMetadata.getProperties())
         );
+
+        saveCatalog(session, xFileCatalog);
+    }
+
+    private void saveCatalog(ConnectorSession session, XFileCatalog xFileCatalog) {
+        TrinoFileSystem fileSystem = trinoFileSystemFactory.create(session);
+        TrinoOutputFile trinoOutputFile = fileSystem.newOutputFile(Location.of(config.getMetadataLocation()));
+        try {
+            String json = jsonCodec.toJson(xFileCatalog);
+            trinoOutputFile.createOrOverwrite(json.getBytes());
+        } catch (IOException e) {
+            throw new TrinoException(StandardErrorCode.CONFIGURATION_INVALID, e);
+        }
+    }
+
+    @Override
+    public void dropSchema(ConnectorSession session, String schemaName) {
+        getXFileCatalog(session);
+        xFileCatalog.setSchemas(xFileCatalog.getSchemas().stream()
+                .filter(s -> !s.getName().equals(schemaName)).toList());
+
+        saveCatalog(session, xFileCatalog);
+    }
+
+    @Override
+    public void dropTable(ConnectorSession session, String schemaName, String tableName) {
+        getXFileCatalog(session);
+        XFileSchema xFileSchema = getSchema(session,schemaName);
+        xFileSchema.setTables(
+                xFileSchema.getTables().stream().filter(
+                        t -> !t.getName().equals(tableName)).toList());
+        saveCatalog(session, xFileCatalog);
     }
 }

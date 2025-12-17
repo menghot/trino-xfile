@@ -62,6 +62,7 @@ public class XFileTable {
         return columnsMetadata;
     }
 
+    @JsonProperty
     public Map<String, Object> getProperties() {
         return properties;
     }

@@ -47,6 +47,21 @@ public class XFileMetadata
 
     @Override
     public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
+
+        if (tableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+            // Table name starts s3:// or local:// and ends with .csv / .parquet
+            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+        }
+
+        if (!listSchemaNames(session).contains(tableName.getSchemaName())) {
+            return null;
+        }
+
+        XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
+        if (table == null) {
+            return null;
+        }
+
         return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
     }
 
@@ -116,7 +131,7 @@ public class XFileMetadata
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
         XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table != null) {
-            return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata());
+            return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata(), table.getProperties());
         } else {
             // Read table metadata from file (parquet, csv)
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);

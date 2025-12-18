@@ -46,8 +46,9 @@ public class XFileCsvRecordCursor implements RecordCursor {
     private final Iterator<String[]> lineIterator;
     private final CountingInputStream countingInputStream;
     private final XFileSplit xFileSplit;
+    private final int tableColumnNum;
+
     private String[] fields;
-    private int tableColumnNum;
     private long currentRowNum = 0;
 
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
@@ -65,8 +66,6 @@ public class XFileCsvRecordCursor implements RecordCursor {
             skipRows--;
             currentRowNum ++;
         }
-
-
     }
 
     @Override

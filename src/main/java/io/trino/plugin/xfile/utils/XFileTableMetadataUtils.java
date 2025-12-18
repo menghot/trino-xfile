@@ -10,10 +10,12 @@ import io.trino.parquet.metadata.FileMetadata;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
 import io.trino.plugin.xfile.XFileConnector;
+import io.trino.plugin.xfile.XFileInternalColumn;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
 import io.trino.spi.connector.ColumnMetadata;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SchemaTableName;
+import io.trino.spi.type.BigintType;
 import io.trino.spi.type.Type;
 import io.trino.spi.type.VarcharType;
 import org.apache.parquet.schema.MessageType;
@@ -39,16 +41,35 @@ public class XFileTableMetadataUtils {
 
 
     public static ConnectorTableMetadata getCsvConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
-        ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
+        ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
         CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName())));
         Iterator<String[]> lineIterator = csvReader.iterator();
         if (lineIterator.hasNext()) {
             String[] fields = lineIterator.next();
             for (String field : fields) {
-                columnsMetadata.add(new ColumnMetadata(field.trim(), VarcharType.createUnboundedVarcharType()));
+                listBuilder.add(new ColumnMetadata(field.trim(), VarcharType.createUnboundedVarcharType()));
             }
         }
-        return new ConnectorTableMetadata(tableName, columnsMetadata.build());
+
+        setHiddenColumns(listBuilder);
+
+        return new ConnectorTableMetadata(tableName, listBuilder.build());
+    }
+
+    public static void setHiddenColumns(ImmutableList.Builder<ColumnMetadata> listBuilder) {
+        // __file_path__
+        ColumnMetadata.Builder filePathBuilder = ColumnMetadata.builder();
+        filePathBuilder.setHidden(true);
+        filePathBuilder.setName(XFileInternalColumn.FILE_PATH.getName());
+        filePathBuilder.setType(VarcharType.createUnboundedVarcharType());
+        listBuilder.add(filePathBuilder.build());
+
+        // __row_num__
+        ColumnMetadata.Builder rowNumBuilder = ColumnMetadata.builder();
+        rowNumBuilder.setHidden(true);
+        rowNumBuilder.setName(XFileInternalColumn.ROW_NUM.getName());
+        rowNumBuilder.setType(BigintType.BIGINT);
+        listBuilder.add(rowNumBuilder.build());
     }
 
 

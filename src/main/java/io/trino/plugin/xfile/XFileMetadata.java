@@ -141,25 +141,13 @@ public class XFileMetadata
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
         XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table != null) {
-
             ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
             for (XFileColumn column : table.getColumns()) {
                 listBuilder.add(new ColumnMetadata(column.name(), column.type()));
             }
 
-            // __file_path__
-            ColumnMetadata.Builder filePathBuilder = ColumnMetadata.builder();
-            filePathBuilder.setHidden(true);
-            filePathBuilder.setName(XFileInternalColumn.FILE_PATH.getName());
-            filePathBuilder.setType(VarcharType.createUnboundedVarcharType());
-            listBuilder.add(filePathBuilder.build());
-
-            // __row_num__
-            ColumnMetadata.Builder rowNumBuilder = ColumnMetadata.builder();
-            rowNumBuilder.setHidden(true);
-            rowNumBuilder.setName(XFileInternalColumn.ROW_NUM.getName());
-            rowNumBuilder.setType(BigintType.BIGINT);
-            listBuilder.add(rowNumBuilder.build());
+            //Set hidden columns  __file_path__, __row_num__ ...
+            XFileTableMetadataUtils.setHiddenColumns(listBuilder);
 
             return new ConnectorTableMetadata(schemaTableName, listBuilder.build(), table.getProperties());
         } else {

@@ -22,8 +22,7 @@ import io.trino.spi.connector.*;
 import java.util.List;
 
 
-public class XFileRecordSetProvider
-        implements ConnectorRecordSetProvider {
+public class XFileRecordSetProvider implements ConnectorRecordSetProvider {
 
     private final TrinoFileSystemFactory fileSystemFactory;
 

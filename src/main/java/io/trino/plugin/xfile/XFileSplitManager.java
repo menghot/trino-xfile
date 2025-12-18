@@ -45,24 +45,30 @@ public class XFileSplitManager
         XFileTableHandle tableHandle = (XFileTableHandle) connectorTableHandle;
         List<ConnectorSplit> splits = new ArrayList<>();
 
-        if (tableHandle.getTableName().matches(XFileConnector.FILE_FILTER_REGEX)) {
-            table = new XFileTable(tableHandle.getTableName(), List.of(), Map.of());
+        table = xFileMetadataClient.getTable(session, tableHandle.getSchemaName(), tableHandle.getTableName());
+        if (table == null) {
+            SchemaTableName schemaTableName = tableHandle.getSchemaTableName();
+            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getTableName());
+            // copy tables properties from schema properties
+            table = new XFileTable(tableHandle.getTableName(), List.of(), xFileSchema.getProperties());
             splits.add(new XFileSplit(table.getName(), Map.of(), table));
         } else {
-            table = xFileMetadataClient.getTable(session, tableHandle.getSchemaName(), tableHandle.getTableName());
-            FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
-            try {
-                while (fileIterator.hasNext()) {
-                    FileEntry entry = fileIterator.next();
-                    splits.add(new XFileSplit(entry.location().toString(), Map.of(), table));
+            if (table.getName().matches(XFileConnector.FILE_FILTER_REGEX)) {
+                // Single file table (csv/parquet file)
+                splits.add(new XFileSplit(table.getName(), Map.of(), table));
+            } else {
+                // Folder table
+                FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
+                try {
+                    while (fileIterator.hasNext()) {
+                        FileEntry entry = fileIterator.next();
+                        splits.add(new XFileSplit(entry.location().toString(), Map.of(), table));
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
         }
-
         return new XFileSplitSource(table, tableHandle, dynamicFilter, splits);
     }
-
-
 }

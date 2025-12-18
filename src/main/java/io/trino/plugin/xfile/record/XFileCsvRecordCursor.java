@@ -20,6 +20,7 @@ import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import io.trino.filesystem.TrinoFileSystem;
 import io.trino.plugin.xfile.XFileColumnHandle;
+import io.trino.plugin.xfile.XFileConnector;
 import io.trino.plugin.xfile.XFileSplit;
 import io.trino.plugin.xfile.utils.XFileTrinoFileSystemUtils;
 import io.trino.spi.connector.RecordCursor;
@@ -39,8 +40,7 @@ import static io.trino.spi.type.BooleanType.BOOLEAN;
 import static io.trino.spi.type.DoubleType.DOUBLE;
 import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
 
-public class XFileCsvRecordCursor
-        implements RecordCursor {
+public class XFileCsvRecordCursor implements RecordCursor {
 
     private final List<XFileColumnHandle> columnHandles;
     private final Iterator<String[]> lineIterator;
@@ -53,6 +53,12 @@ public class XFileCsvRecordCursor
         countingInputStream = new CountingInputStream(is);
         CSVReader csvReader = new CSVReader(new InputStreamReader(countingInputStream));
         lineIterator = csvReader.iterator();
+
+        int skipRows = Integer.parseInt(xFileSplit.xFileTable().getProperties().getOrDefault(XFileConnector.CSV_SKIP_ROWS_PROPERTY, "0").toString()) ;
+        while (lineIterator.hasNext() && skipRows > 0) {
+            lineIterator.next();
+            skipRows--;
+        }
     }
 
     @Override
@@ -82,7 +88,7 @@ public class XFileCsvRecordCursor
 
     private String getFieldValue(int field) {
         checkState(fields != null, "Dataset has not been advanced yet");
-        return fields[columnHandles.get(field).getOrdinalPosition()];
+        return fields[columnHandles.get(field).getOrdinalPosition()].trim();
     }
 
     @Override

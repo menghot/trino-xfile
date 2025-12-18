@@ -39,6 +39,7 @@ import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 
 public final class MetadataUtil {
+
     private MetadataUtil() {
     }
 

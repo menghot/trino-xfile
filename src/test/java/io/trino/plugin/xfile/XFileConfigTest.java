@@ -30,7 +30,7 @@ public class XFileConfigTest {
 
     @Test
     public void testExplicitPropertyMappings() {
-        Map<String, String> properties = ImmutableMap.of("metadata-uri", "file://test.json");
+        Map<String, String> properties = ImmutableMap.of("metadata-location", "file://test.json");
 
         XFileConfig expected = new XFileConfig()
                 .setMetadataLocation("file://test.json");

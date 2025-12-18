@@ -21,8 +21,11 @@ import static io.airlift.slice.SizeOf.instanceSize;
 import static io.trino.spi.connector.SchemaUtil.checkNotEmpty;
 import static java.util.Locale.ENGLISH;
 
-public record SchemaTableName(String schemaName, String tableName) {
+public final class SchemaTableName {
     private static final int INSTANCE_SIZE = instanceSize(SchemaTableName.class);
+
+    private final String schemaName;
+    private final String tableName;
 
     @JsonCreator
     public SchemaTableName(@JsonProperty("schema") String schemaName, @JsonProperty("table") String tableName) {
@@ -38,15 +41,13 @@ public record SchemaTableName(String schemaName, String tableName) {
         return new SchemaTableName(schemaName, tableName);
     }
 
-    @Override
     @JsonProperty("schema")
-    public String schemaName() {
+    public String getSchemaName() {
         return schemaName;
     }
 
-    @Override
     @JsonProperty("table")
-    public String tableName() {
+    public String getTableName() {
         return tableName;
     }
 

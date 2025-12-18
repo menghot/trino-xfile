@@ -82,22 +82,22 @@ public class XFileConnector
                         null,
                         false),
                 integerProperty(
-                        "csv.skip-rows",
-                        "csv skip lines ",
+                        "csv-skip-rows",
+                        "csv skip lines",
                         null,
                         false),
                 stringProperty(
-                        "csv.delimiter",
+                        "csv-delimiter",
                         "csv delimiter",
                         null,
                         false),
                 stringProperty(
-                        "file.compression-format",
+                        "file-compression-format",
                         "file compression format,  zip or gzip",
                         null,
                         false),
                 stringProperty(
-                        "file.filter-regx",
+                        "file-filter-regx",
                         "file filter regx",
                         null,
                         false)

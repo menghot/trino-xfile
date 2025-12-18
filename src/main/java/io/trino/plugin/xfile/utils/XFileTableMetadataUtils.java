@@ -27,9 +27,9 @@ import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeT
 public class XFileTableMetadataUtils {
 
     public static ConnectorTableMetadata readTableMetadataFromFile(TrinoFileSystem trinoFileSystem, SchemaTableName schemaTableName) {
-        if (schemaTableName.tableName().endsWith(".parquet")) {
+        if (schemaTableName.getTableName().endsWith(".parquet")) {
             return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, schemaTableName);
-        } else if (schemaTableName.tableName().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
+        } else if (schemaTableName.getTableName().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
             return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
         }
 
@@ -40,7 +40,7 @@ public class XFileTableMetadataUtils {
 
     public static ConnectorTableMetadata getCsvConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
         ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
-        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.tableName())));
+        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName())));
         Iterator<String[]> lineIterator = csvReader.iterator();
         if (lineIterator.hasNext()) {
             String[] fields = lineIterator.next();
@@ -54,7 +54,7 @@ public class XFileTableMetadataUtils {
 
     public static ConnectorTableMetadata getParquetConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
 
-        TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.tableName()));
+        TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.getTableName()));
         try {
             ParquetDataSource dataSource = new ParquetFileDataSource(trinoInputFile);
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());

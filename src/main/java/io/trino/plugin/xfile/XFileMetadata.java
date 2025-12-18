@@ -114,20 +114,20 @@ public class XFileMetadata
     @Override
     public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
 
-        XFileTable table = xFileMetadataClient.getTable(session, tableName.schemaName(), tableName.tableName());
+        XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
         if (table != null) {
-            return new XFileTableHandle(tableName.schemaName(), tableName.tableName());
+            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
         }
 
-        XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, tableName.schemaName());
+        XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, tableName.getSchemaName());
         if (xFileSchema == null) {
             return null;
         }
 
         if (!xFileSchema.getProperties().containsKey(XFileConstants.SCHEMA_PROP_LOCATION)) {
             return null;
-        } else if (tableName.tableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
-            return new XFileTableHandle(tableName.schemaName(), tableName.tableName());
+        } else if (tableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
         }
 
         return null;
@@ -137,7 +137,7 @@ public class XFileMetadata
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
-        XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.schemaName(), schemaTableName.tableName());
+        XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table != null) {
             return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata(), table.getProperties());
         } else {

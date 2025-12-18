@@ -21,6 +21,8 @@ import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
+import io.trino.spi.type.BigintType;
+import io.trino.spi.type.VarcharType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -139,7 +141,27 @@ public class XFileMetadata
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
         XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table != null) {
-            return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata(), table.getProperties());
+
+            ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
+            for (XFileColumn column : table.getColumns()) {
+                listBuilder.add(new ColumnMetadata(column.name(), column.type()));
+            }
+
+            // __file_path__
+            ColumnMetadata.Builder filePathBuilder = ColumnMetadata.builder();
+            filePathBuilder.setHidden(true);
+            filePathBuilder.setName(XFileInternalColumn.FILE_PATH.getName());
+            filePathBuilder.setType(VarcharType.createUnboundedVarcharType());
+            listBuilder.add(filePathBuilder.build());
+
+            // __row_num__
+            ColumnMetadata.Builder rowNumBuilder = ColumnMetadata.builder();
+            rowNumBuilder.setHidden(true);
+            rowNumBuilder.setName(XFileInternalColumn.ROW_NUM.getName());
+            rowNumBuilder.setType(VarcharType.createUnboundedVarcharType());
+            listBuilder.add(rowNumBuilder.build());
+
+            return new ConnectorTableMetadata(schemaTableName, listBuilder.build(), table.getProperties());
         } else {
             // Read table metadata from file (parquet, csv...)
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
@@ -147,15 +169,15 @@ public class XFileMetadata
         }
     }
 
-
     @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle) {
         XFileTableHandle xFileTableHandle = (XFileTableHandle) tableHandle;
         ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
         AtomicInteger index = new AtomicInteger();
         getTableMetadata(session, xFileTableHandle).getColumns().forEach(column -> {
-            columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), false));
+            columnHandles.put(column.getName(), new XFileColumnHandle(column.getName(), column.getType(), index.getAndIncrement(), column.isHidden()));
         });
+
         return columnHandles.build();
     }
 

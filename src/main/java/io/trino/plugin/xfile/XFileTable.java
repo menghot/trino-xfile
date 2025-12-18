@@ -17,6 +17,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 import io.trino.spi.connector.ColumnMetadata;
+import io.trino.spi.type.BigintType;
+import io.trino.spi.type.VarcharType;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,6 @@ import static java.util.Objects.requireNonNull;
 public class XFileTable {
     private final String name;
     private final List<XFileColumn> columns;
-    private final List<ColumnMetadata> columnsMetadata;
     private final Map<String, Object> properties;
 
     @JsonCreator
@@ -40,12 +41,6 @@ public class XFileTable {
         checkArgument(!isNullOrEmpty(name), "name is null or is empty");
         this.name = requireNonNull(name, "name is null");
         this.columns = ImmutableList.copyOf(requireNonNull(columns, "columns is null"));
-
-        ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
-        for (XFileColumn column : this.columns) {
-            columnsMetadata.add(new ColumnMetadata(column.name(), column.type()));
-        }
-        this.columnsMetadata = columnsMetadata.build();
     }
 
     @JsonProperty
@@ -56,10 +51,6 @@ public class XFileTable {
     @JsonProperty
     public List<XFileColumn> getColumns() {
         return columns;
-    }
-
-    public List<ColumnMetadata> getColumnsMetadata() {
-        return columnsMetadata;
     }
 
     @JsonProperty

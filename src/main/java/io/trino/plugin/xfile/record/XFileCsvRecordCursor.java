@@ -45,20 +45,28 @@ public class XFileCsvRecordCursor implements RecordCursor {
     private final List<XFileColumnHandle> columnHandles;
     private final Iterator<String[]> lineIterator;
     private final CountingInputStream countingInputStream;
+    private final XFileSplit xFileSplit;
     private String[] fields;
+    private int tableColumnNum;
+    private long currentRowNum = 0;
 
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
+        this.xFileSplit  = xFileSplit;
+
         InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri());
         countingInputStream = new CountingInputStream(is);
         CSVReader csvReader = new CSVReader(new InputStreamReader(countingInputStream));
         lineIterator = csvReader.iterator();
-
+        tableColumnNum = xFileSplit.xFileTable().getColumns().size();
         int skipRows = Integer.parseInt(xFileSplit.xFileTable().getProperties().getOrDefault(XFileConnector.CSV_SKIP_ROWS_PROPERTY, "0").toString()) ;
         while (lineIterator.hasNext() && skipRows > 0) {
             lineIterator.next();
             skipRows--;
+            currentRowNum ++;
         }
+
+
     }
 
     @Override
@@ -81,6 +89,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
     public boolean advanceNextPosition() {
         if (lineIterator.hasNext()) {
             fields = lineIterator.next();
+            currentRowNum ++;
             return true;
         }
         return false;
@@ -88,6 +97,18 @@ public class XFileCsvRecordCursor implements RecordCursor {
 
     private String getFieldValue(int field) {
         checkState(fields != null, "Dataset has not been advanced yet");
+        if(columnHandles.get(field).getOrdinalPosition() >= tableColumnNum ) {
+            int index = columnHandles.get(field).getOrdinalPosition() - tableColumnNum;
+            // __file_path__
+            if( index == 0) {
+                return xFileSplit.uri();
+            }
+
+            // __row_num__
+            if( index == 1) {
+                return String.valueOf(currentRowNum);
+            }
+        }
         return fields[columnHandles.get(field).getOrdinalPosition()].trim();
     }
 

@@ -27,12 +27,12 @@ public class XFileTableTest {
             ImmutableList.of(new XFileColumn("a", createUnboundedVarcharType()), new XFileColumn("b", BIGINT)),
             null);
 
-    @Test
-    public void testColumnMetadata() {
-        assertThat(XFileTable.getColumnsMetadata()).isEqualTo(ImmutableList.of(
-                new ColumnMetadata("a", createUnboundedVarcharType()),
-                new ColumnMetadata("b", BIGINT)));
-    }
+//    @Test
+//    public void testColumnMetadata() {
+//        assertThat(XFileTable.getColumnsMetadata()).isEqualTo(ImmutableList.of(
+//                new ColumnMetadata("a", createUnboundedVarcharType()),
+//                new ColumnMetadata("b", BIGINT)));
+//    }
 
     @Test
     public void testRoundTrip() {

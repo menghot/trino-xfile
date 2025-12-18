@@ -45,7 +45,7 @@ public class XFileSplitManager
         XFileTableHandle tableHandle = (XFileTableHandle) connectorTableHandle;
         List<ConnectorSplit> splits = new ArrayList<>();
 
-        if (tableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+        if (tableHandle.getTableName().matches(XFileConnector.FILE_FILTER_REGEX)) {
             table = new XFileTable(tableHandle.getTableName(), List.of(), Map.of());
             splits.add(new XFileSplit(table.getName(), Map.of(), table));
         } else {

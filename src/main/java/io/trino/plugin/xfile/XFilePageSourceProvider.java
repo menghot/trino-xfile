@@ -86,7 +86,7 @@ public class XFilePageSourceProvider
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else if (xFileSplit.uri().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
+        } else if (xFileSplit.uri().matches(XFileConnector.FILE_TABLE_CSV_REGEX)) {
             return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, xFileSplit, tableHandle, columns));
         }
 

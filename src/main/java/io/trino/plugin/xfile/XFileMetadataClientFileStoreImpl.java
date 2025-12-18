@@ -103,7 +103,7 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
         List<XFileColumn> columns = tableMetadata.getColumns().stream().map(
                 c -> new XFileColumn(c.getName(), c.getType())).toList();
 
-        if (xFileSchema.getProperties().containsKey(XFileConstants.SCHEMA_PROP_LOCATION)) {
+        if (xFileSchema.getProperties().containsKey(XFileConnector.FILE_LOCATION)) {
             throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().getSchemaName());
         }
 

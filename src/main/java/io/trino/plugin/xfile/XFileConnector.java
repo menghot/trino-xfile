@@ -19,6 +19,7 @@ import io.airlift.bootstrap.LifeCycleManager;
 import io.trino.filesystem.TrinoFileSystemFactory;
 import io.trino.spi.connector.*;
 import io.trino.spi.session.PropertyMetadata;
+import io.trino.spi.transaction.IsolationLevel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,18 @@ import static io.trino.spi.session.PropertyMetadata.integerProperty;
 import static io.trino.spi.session.PropertyMetadata.stringProperty;
 import static java.util.Objects.requireNonNull;
 
-public class XFileConnector
-        implements Connector {
+public class XFileConnector implements Connector {
+
+    public static final String FILE_FILTER_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|csv\\.zip|parquet)$";
+    public static final String FILE_TABLE_CSV_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|csv\\.zip)$";
+
+    public static final String FILE_COMPRESSION_FORMAT_PROPERTY = "file-compression-format";
+    public static final String FILE_FILTER_REGX_PROPERTY = "file-filter-regx";
+    public static final String FILE_LOCATION = "location";
+    public static final String FILE_FORMAT = "format";
+    public static final String CSV_SKIP_ROWS_PROPERTY = "csv-skip-rows";
+    public static final String CSV_DELIMITER_PROPERTY = "csv-delimiter";
+
     private final LifeCycleManager lifeCycleManager;
     private final XFileMetadata metadata;
     private final XFileSplitManager splitManager;
@@ -44,6 +55,16 @@ public class XFileConnector
         this.metadata = requireNonNull(metadata, "metadata is null");
         this.splitManager = requireNonNull(splitManager, "splitManager is null");
         this.pageSourceProvider = new XFilePageSourceProvider(trinoFileSystemFactory);
+    }
+
+    public enum XFileTransactionHandle
+            implements ConnectorTransactionHandle {
+        INSTANCE
+    }
+
+    @Override
+    public ConnectorTransactionHandle beginTransaction(IsolationLevel isolationLevel, boolean readOnly, boolean autoCommit) {
+        return XFileTransactionHandle.INSTANCE;
     }
 
     @Override
@@ -66,31 +87,32 @@ public class XFileConnector
         lifeCycleManager.stop();
     }
 
+
     @Override
     public List<PropertyMetadata<?>> getTableProperties() {
         return ImmutableList.of(
                 stringProperty(
-                        "format",
+                        FILE_FORMAT,
                         "file format, csv|csv.gz|parquet|json|xls|xlsx",
                         null,
                         false),
                 integerProperty(
-                        "csv-skip-rows",
+                        CSV_SKIP_ROWS_PROPERTY,
                         "csv skip lines",
                         null,
                         false),
                 stringProperty(
-                        "csv-delimiter",
+                        CSV_DELIMITER_PROPERTY,
                         "csv delimiter",
                         null,
                         false),
                 stringProperty(
-                        "file-compression-format",
+                        FILE_COMPRESSION_FORMAT_PROPERTY,
                         "file compression format,  zip or gzip",
                         null,
                         false),
                 stringProperty(
-                        "file-filter-regx",
+                        FILE_FILTER_REGX_PROPERTY,
                         "file filter regx",
                         null,
                         false)
@@ -101,7 +123,7 @@ public class XFileConnector
     public List<PropertyMetadata<?>> getSchemaProperties() {
         List<PropertyMetadata<?>> list = new ArrayList<>(getTableProperties());
         list.add(stringProperty(
-                XFileConstants.SCHEMA_PROP_LOCATION,
+                FILE_LOCATION,
                 "Schema location",
                 null,
                 false));

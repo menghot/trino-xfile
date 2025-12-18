@@ -19,12 +19,10 @@ import io.airlift.bootstrap.LifeCycleManager;
 import io.trino.filesystem.TrinoFileSystemFactory;
 import io.trino.spi.connector.*;
 import io.trino.spi.session.PropertyMetadata;
-import io.trino.spi.transaction.IsolationLevel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.trino.plugin.xfile.XFileTransactionHandle.INSTANCE;
 import static io.trino.spi.session.PropertyMetadata.integerProperty;
 import static io.trino.spi.session.PropertyMetadata.stringProperty;
 import static java.util.Objects.requireNonNull;

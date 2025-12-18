@@ -49,11 +49,6 @@ public class XFileConnector
     }
 
     @Override
-    public ConnectorTransactionHandle beginTransaction(IsolationLevel isolationLevel, boolean readOnly, boolean autoCommit) {
-        return INSTANCE;
-    }
-
-    @Override
     public ConnectorMetadata getMetadata(ConnectorSession session, ConnectorTransactionHandle transactionHandle) {
         return metadata;
     }

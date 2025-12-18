@@ -1,10 +1,12 @@
 package io.trino.plugin.xfile;
 
+import io.trino.filesystem.FileIterator;
 import io.trino.spi.connector.ConnectorSession;
 import io.trino.spi.connector.ConnectorTableMetadata;
 import io.trino.spi.connector.SaveMode;
 import io.trino.spi.security.TrinoPrincipal;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,4 +30,6 @@ public interface XFileMetadataClient {
     void dropSchema(ConnectorSession session, String schemaName);
 
     void dropTable(ConnectorSession session, String schemaName, String tableName);
+
+    FileIterator listFiles(ConnectorSession session, String path);
 }

@@ -146,4 +146,14 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
                         t -> !t.getName().equals(tableName)).toList());
         saveCatalog(session, xFileCatalog);
     }
+
+    @Override
+    public FileIterator listFiles(ConnectorSession session, String path) {
+        TrinoFileSystem fileSystem = trinoFileSystemFactory.create(session);
+        try {
+            return fileSystem.listFiles(Location.of(path));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -75,20 +75,21 @@ public class XFilePageSourceProvider
             List<ColumnHandle> columns,
             DynamicFilter dynamicFilter) {
 
-        XFileSplit XFileSplit = (XFileSplit) split;
+        XFileSplit xFileSplit = (XFileSplit) split;
         XFileTableHandle tableHandle = (XFileTableHandle) table;
 
-        // 1. Create page source for parquet file
-        if (tableHandle.getTableName().endsWith(".parquet")) {
-            TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(tableHandle.getTableName()));
+        // 1. Parquet
+        if (xFileSplit.getUri().endsWith(".parquet")) {
+            TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(xFileSplit.getUri()));
             try {
                 return getParquetPageSource(columns, new ParquetFileDataSource(trinoInputFile));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        } else if (xFileSplit.getUri().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
+            return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, xFileSplit, tableHandle, columns));
         }
 
-        // 2. Create RecordPageSource for non-parquet files
-        return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, XFileSplit, tableHandle, columns));
+        return null;
     }
 }

@@ -18,18 +18,17 @@ public class XFileSplitSource implements ConnectorSplitSource {
     private final DynamicFilter dynamicFilter;
     private final List<ConnectorSplit> splits;
     private final Map<String, String> properties;
-    private final XFileTable table;
     private final XFileTableHandle XFileTableHandle;
     private FixedSplitSource source;
 
     public XFileSplitSource(
             XFileTable table,
             XFileTableHandle XFileTableHandle,
-            DynamicFilter dynamicFilter) {
+            DynamicFilter dynamicFilter,
+            List<ConnectorSplit> splits) {
 
-        this.table = table;
         this.dynamicFilter = dynamicFilter;
-        this.splits = new ArrayList<>();
+        this.splits = new ArrayList<>(splits);
         this.properties = new HashMap<>();
         this.XFileTableHandle = XFileTableHandle;
     }
@@ -37,17 +36,7 @@ public class XFileSplitSource implements ConnectorSplitSource {
     @Override
     public synchronized CompletableFuture<ConnectorSplitBatch> getNextBatch(int maxSize) {
         if (source == null) {
-            // 1. Load split from dynamic filter
             extractDynamicFilter();
-
-            // 2. Load split from filter
-
-            // 3. Add file table as split
-            if (table.getName().matches(XFileConstants.FILE_TABLE_REGEX)) {
-                splits.add(new XFileSplit(table.getName(), properties, table));
-            }
-
-            // Random splits
             Collections.shuffle(splits);
             source = new FixedSplitSource(splits);
         }

@@ -9,6 +9,7 @@ import io.trino.parquet.ParquetDataSource;
 import io.trino.parquet.metadata.FileMetadata;
 import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.reader.MetadataReader;
+import io.trino.plugin.xfile.XFileConstants;
 import io.trino.plugin.xfile.parquet.ParquetFileDataSource;
 import io.trino.spi.connector.ColumnMetadata;
 import io.trino.spi.connector.ConnectorTableMetadata;
@@ -28,12 +29,11 @@ public class XFileTableMetadataUtils {
     public static ConnectorTableMetadata readTableMetadataFromFile(TrinoFileSystem trinoFileSystem, SchemaTableName schemaTableName) {
         if (schemaTableName.getTableName().endsWith(".parquet")) {
             return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, schemaTableName);
-        } else if (schemaTableName.getTableName().endsWith(".css")) {
+        } else if (schemaTableName.getTableName().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
             return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
         }
 
         // support more file types
-
         return null;
     }
 

@@ -14,8 +14,12 @@
 package io.trino.plugin.xfile;
 
 import com.google.inject.Inject;
+import io.trino.filesystem.FileEntry;
+import io.trino.filesystem.FileIterator;
 import io.trino.spi.connector.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,16 +42,27 @@ public class XFileSplitManager
             DynamicFilter dynamicFilter,
             Constraint constraint) {
 
-        XFileTableHandle tableHandle = (XFileTableHandle) connectorTableHandle;
-
         XFileTable table;
+        XFileTableHandle tableHandle = (XFileTableHandle) connectorTableHandle;
+        List<ConnectorSplit> splits = new ArrayList<>();
+
         if (tableHandle.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
             table = new XFileTable(tableHandle.getTableName(), List.of(), Map.of());
+            splits.add(new XFileSplit(table.getName(), Map.of(), table));
         } else {
             table = xFileMetadataClient.getTable(session, tableHandle.getSchemaName(), tableHandle.getTableName());
+            FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
+            try {
+                while (fileIterator.hasNext()) {
+                    FileEntry entry =  fileIterator.next();
+                    splits.add(new XFileSplit(entry.location().toString(), Map.of(), table));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        return new XFileSplitSource(table, tableHandle, dynamicFilter);
+        return new XFileSplitSource(table, tableHandle, dynamicFilter, splits);
     }
 
 

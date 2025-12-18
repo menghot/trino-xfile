@@ -45,26 +45,6 @@ public class XFileMetadata
         return ImmutableList.copyOf(xFileMetadataClient.getSchemaNames(session));
     }
 
-    @Override
-    public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
-
-        if (tableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
-            // Table name starts s3:// or local:// and ends with .csv / .parquet
-            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
-        }
-
-        if (!listSchemaNames(session).contains(tableName.getSchemaName())) {
-            return null;
-        }
-
-        XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
-        if (table == null) {
-            return null;
-        }
-
-        return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
-    }
-
 
 
     @Override
@@ -125,6 +105,22 @@ public class XFileMetadata
         }
         return builder.build();
     }
+
+    @Override
+    public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
+
+        XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
+        if (table != null) {
+            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+        }
+
+        if (tableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+        }
+
+        return null;
+    }
+
 
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {

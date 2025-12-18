@@ -158,7 +158,7 @@ public class XFileMetadata
             ColumnMetadata.Builder rowNumBuilder = ColumnMetadata.builder();
             rowNumBuilder.setHidden(true);
             rowNumBuilder.setName(XFileInternalColumn.ROW_NUM.getName());
-            rowNumBuilder.setType(VarcharType.createUnboundedVarcharType());
+            rowNumBuilder.setType(BigintType.BIGINT);
             listBuilder.add(rowNumBuilder.build());
 
             return new ConnectorTableMetadata(schemaTableName, listBuilder.build(), table.getProperties());

@@ -23,7 +23,10 @@ import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
@@ -44,7 +47,6 @@ public class XFileMetadata
     public List<String> listSchemaNames(ConnectorSession session) {
         return ImmutableList.copyOf(xFileMetadataClient.getSchemaNames(session));
     }
-
 
 
     @Override
@@ -78,44 +80,54 @@ public class XFileMetadata
 
     @Override
     public List<SchemaTableName> listTables(ConnectorSession session, Optional<String> optionalSchemaName) {
-
         ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
-        if (optionalSchemaName.isPresent()) {
-            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, optionalSchemaName.get());
-            Object location = xFileSchema.getProperties().get("location");
-            if (location != null) {
-                TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
-                try {
-                    FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(location.toString()));
-                    while (fileIterator.hasNext()) {
-                        FileEntry fileEntry = fileIterator.next();
-                        if (fileEntry.location().toString().matches(XFileConstants.FILE_TABLE_REGEX)) {
-                            builder.add(new SchemaTableName(optionalSchemaName.get(), fileEntry.location().toString()));
-                        }
-                    }
-                    return builder.build();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                xFileSchema.getTables().forEach(table -> {
-                    builder.add(new SchemaTableName(optionalSchemaName.get(), table.getName()));
-                });
-            }
+        if (!optionalSchemaName.isPresent()) {
+            return builder.build();
         }
+
+        XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, optionalSchemaName.get());
+        Object location = xFileSchema.getProperties().get(XFileConstants.SCHEMA_PROP_LOCATION);
+        if (location != null) {
+            TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
+            try {
+                FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(location.toString()));
+                while (fileIterator.hasNext()) {
+                    FileEntry fileEntry = fileIterator.next();
+                    if (fileEntry.location().toString().matches(XFileConstants.FILE_TABLE_REGEX)) {
+                        builder.add(new SchemaTableName(optionalSchemaName.get(), fileEntry.location().toString()));
+                    }
+                }
+                return builder.build();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            xFileSchema.getTables().forEach(table -> {
+                builder.add(new SchemaTableName(optionalSchemaName.get(), table.getName()));
+            });
+        }
+
         return builder.build();
     }
+
 
     @Override
     public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
 
-        XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
+        XFileTable table = xFileMetadataClient.getTable(session, tableName.schemaName(), tableName.tableName());
         if (table != null) {
-            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+            return new XFileTableHandle(tableName.schemaName(), tableName.tableName());
         }
 
-        if (tableName.getTableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
-            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+        XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, tableName.schemaName());
+        if (xFileSchema == null) {
+            return null;
+        }
+
+        if (!xFileSchema.getProperties().containsKey(XFileConstants.SCHEMA_PROP_LOCATION)) {
+            return null;
+        } else if (tableName.tableName().matches(XFileConstants.FILE_TABLE_REGEX)) {
+            return new XFileTableHandle(tableName.schemaName(), tableName.tableName());
         }
 
         return null;
@@ -125,15 +137,16 @@ public class XFileMetadata
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
-        XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
+        XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.schemaName(), schemaTableName.tableName());
         if (table != null) {
             return new ConnectorTableMetadata(schemaTableName, table.getColumnsMetadata(), table.getProperties());
         } else {
-            // Read table metadata from file (parquet, csv)
+            // Read table metadata from file (parquet, csv...)
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
             return XFileTableMetadataUtils.readTableMetadataFromFile(trinoFileSystem, schemaTableName);
         }
     }
+
 
     @Override
     public Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle) {

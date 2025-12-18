@@ -13,9 +13,7 @@
  */
 package io.trino.plugin.xfile;
 
-import com.google.common.collect.ImmutableList;
 import io.airlift.json.JsonCodec;
-import io.trino.spi.HostAddress;
 import org.junit.jupiter.api.Test;
 
 import static io.airlift.json.JsonCodec.jsonCodec;
@@ -29,6 +27,6 @@ public class XFileSplitTest {
         JsonCodec<XFileSplit> codec = jsonCodec(XFileSplit.class);
         String json = codec.toJson(split);
         XFileSplit copy = codec.fromJson(json);
-        assertThat(copy.getUri()).isEqualTo(split.getUri());
+        assertThat(copy.uri()).isEqualTo(split.uri());
     }
 }

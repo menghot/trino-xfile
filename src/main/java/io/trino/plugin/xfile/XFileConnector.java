@@ -21,10 +21,12 @@ import io.trino.spi.connector.*;
 import io.trino.spi.session.PropertyMetadata;
 import io.trino.spi.transaction.IsolationLevel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static io.trino.plugin.xfile.XFileTransactionHandle.INSTANCE;
-import static io.trino.spi.session.PropertyMetadata.*;
+import static io.trino.spi.session.PropertyMetadata.integerProperty;
+import static io.trino.spi.session.PropertyMetadata.stringProperty;
 import static java.util.Objects.requireNonNull;
 
 public class XFileConnector
@@ -80,30 +82,36 @@ public class XFileConnector
                         null,
                         false),
                 integerProperty(
-                        "max-depth",
-                        "If table name is folder path, set the max depth to search table files",
-                        null,
-                        false)
-        );    }
-
-    @Override
-    public List<PropertyMetadata<?>> getSchemaProperties() {
-        return ImmutableList.of(
-                stringProperty(
-                        "location",
-                        "Table system location URI for the table",
+                        "csv.skip-rows",
+                        "csv skip lines ",
                         null,
                         false),
                 stringProperty(
-                        "format",
-                        "file format, csv|csv.gz|parquet|json|xls|xlsx",
+                        "csv.delimiter",
+                        "csv delimiter",
                         null,
                         false),
-                integerProperty(
-                        "max-depth",
-                        "max depth to search file tales",
+                stringProperty(
+                        "file.compression-format",
+                        "file compression format,  zip or gzip",
+                        null,
+                        false),
+                stringProperty(
+                        "file.filter-regx",
+                        "file filter regx",
                         null,
                         false)
         );
+    }
+
+    @Override
+    public List<PropertyMetadata<?>> getSchemaProperties() {
+        List<PropertyMetadata<?>> list = new ArrayList<>(getTableProperties());
+        list.add(stringProperty(
+                XFileConstants.SCHEMA_PROP_LOCATION,
+                "Schema location",
+                null,
+                false));
+        return list;
     }
 }

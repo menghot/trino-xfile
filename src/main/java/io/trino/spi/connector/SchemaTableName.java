@@ -16,18 +16,13 @@ package io.trino.spi.connector;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Objects;
-
 import static io.airlift.slice.SizeOf.estimatedSizeOf;
 import static io.airlift.slice.SizeOf.instanceSize;
 import static io.trino.spi.connector.SchemaUtil.checkNotEmpty;
 import static java.util.Locale.ENGLISH;
 
-public final class SchemaTableName {
+public record SchemaTableName(String schemaName, String tableName) {
     private static final int INSTANCE_SIZE = instanceSize(SchemaTableName.class);
-
-    private final String schemaName;
-    private final String tableName;
 
     @JsonCreator
     public SchemaTableName(@JsonProperty("schema") String schemaName, @JsonProperty("table") String tableName) {
@@ -43,32 +38,16 @@ public final class SchemaTableName {
         return new SchemaTableName(schemaName, tableName);
     }
 
+    @Override
     @JsonProperty("schema")
-    public String getSchemaName() {
+    public String schemaName() {
         return schemaName;
     }
 
+    @Override
     @JsonProperty("table")
-    public String getTableName() {
+    public String tableName() {
         return tableName;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(schemaName, tableName);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        SchemaTableName other = (SchemaTableName) obj;
-        return Objects.equals(this.schemaName, other.schemaName) &&
-                Objects.equals(this.tableName, other.tableName);
     }
 
     @Override

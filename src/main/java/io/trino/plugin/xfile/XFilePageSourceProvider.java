@@ -79,14 +79,14 @@ public class XFilePageSourceProvider
         XFileTableHandle tableHandle = (XFileTableHandle) table;
 
         // 1. Parquet
-        if (xFileSplit.getUri().endsWith(".parquet")) {
-            TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(xFileSplit.getUri()));
+        if (xFileSplit.uri().endsWith(".parquet")) {
+            TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(xFileSplit.uri()));
             try {
                 return getParquetPageSource(columns, new ParquetFileDataSource(trinoInputFile));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else if (xFileSplit.getUri().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
+        } else if (xFileSplit.uri().matches(XFileConstants.FILE_TABLE_CSV_REGEX)) {
             return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, xFileSplit, tableHandle, columns));
         }
 

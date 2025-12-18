@@ -2,67 +2,124 @@
   "version": "v1",
   "schemas": [
     {
-      "name": "css",
+      "name": "s1",
       "properties": {
-        "location": "s3://hive/warehouse/ods.db",
-        "max-depth": 1
+        "location": "s3://hive/warehouse/ods.db"
       }
     },
     {
-      "name": "clarity",
-      "properties": {
-        "location": "local:///",
-        "max-depth": 1
-      }
-    },
-    {
-      "name": "css2",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
-    },
-    {
-      "name": "css3",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
-    },
-    {
-      "name": "css4",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
-    },
-    {
-      "name": "css5",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
-    },
-    {
-      "name": "css6",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
-    },
-    {
-      "name": "css7",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
-    },
-    {
-      "name": "css8",
-      "properties": {
-        "location": "s3://mes/data"
-      },
-      "tables": []
+      "name": "s2",
+      "properties": {},
+      "tables": [
+        {
+          "name": "s3://hive/warehouse/ods.db/v_customer2-96caeca7bab3448c8dbe68df721eb355/E3",
+          "columns": [
+            {
+              "name": "id",
+              "type": "varchar"
+            }
+          ],
+          "properties": {
+            "format": "ORC"
+          }
+        },
+        {
+          "name": "s3://hive/warehouse/ods.db/v_customer2-96caeca7bab3448c8dbe68df721eb355/E4",
+          "columns": [
+            {
+              "name": "id",
+              "type": "varchar"
+            }
+          ],
+          "properties": {
+            "format": "ORC"
+          }
+        },
+        {
+          "name": "s3://hive/warehouse/ods.db/v_customer2-96caeca7bab3448c8dbe68df721eb355/data",
+          "columns": [
+            {
+              "name": "c_customer_sk",
+              "type": "bigint"
+            },
+            {
+              "name": "c_customer_id",
+              "type": "varchar"
+            },
+            {
+              "name": "c_current_hdemo_sk",
+              "type": "bigint"
+            },
+            {
+              "name": "c_current_addr_sk",
+              "type": "bigint"
+            },
+            {
+              "name": "c_first_shipto_date_sk",
+              "type": "bigint"
+            },
+            {
+              "name": "c_first_sales_date_sk",
+              "type": "bigint"
+            },
+            {
+              "name": "c_salutation",
+              "type": "varchar"
+            },
+            {
+              "name": "c_first_name",
+              "type": "varchar"
+            },
+            {
+              "name": "c_last_name",
+              "type": "varchar"
+            },
+            {
+              "name": "c_preferred_cust_flag",
+              "type": "varchar"
+            },
+            {
+              "name": "c_birth_day",
+              "type": "integer"
+            },
+            {
+              "name": "c_birth_month",
+              "type": "integer"
+            }
+          ],
+          "properties": {
+            "format": "ORC"
+          }
+        },
+        {
+          "name": "s3://metastore/example-data/E6",
+          "columns": [
+            {
+              "name": "id",
+              "type": "varchar"
+            },
+            {
+              "name": "name",
+              "type": "varchar"
+            }
+          ],
+          "properties": {}
+        },
+        {
+          "name": "s3://metastore/example-data/users2.csv.gz",
+          "columns": [
+            {
+              "name": "id",
+              "type": "varchar"
+            },
+            {
+              "name": "name",
+              "type": "varchar"
+            }
+          ],
+          "properties": {}
+        }
+      ]
     }
   ]
 }

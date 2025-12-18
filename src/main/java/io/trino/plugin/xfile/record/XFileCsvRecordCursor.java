@@ -47,10 +47,9 @@ public class XFileCsvRecordCursor
     private final CountingInputStream countingInputStream;
     private String[] fields;
 
-
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
-        InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.getUri());
+        InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri());
         countingInputStream = new CountingInputStream(is);
         CSVReader csvReader = new CSVReader(new InputStreamReader(countingInputStream));
         lineIterator = csvReader.iterator();

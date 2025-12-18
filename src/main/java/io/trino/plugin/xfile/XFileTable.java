@@ -43,7 +43,7 @@ public class XFileTable {
 
         ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
         for (XFileColumn column : this.columns) {
-            columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType()));
+            columnsMetadata.add(new ColumnMetadata(column.name(), column.type()));
         }
         this.columnsMetadata = columnsMetadata.build();
     }

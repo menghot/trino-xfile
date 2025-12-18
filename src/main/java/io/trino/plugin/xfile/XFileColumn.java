@@ -17,16 +17,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.trino.spi.type.Type;
 
-import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
 
-public final class XFileColumn {
-    private final String name;
-    private final Type type;
-
+public record XFileColumn(String name, Type type) {
     @JsonCreator
     public XFileColumn(
             @JsonProperty("name") String name,
@@ -36,33 +31,16 @@ public final class XFileColumn {
         this.type = requireNonNull(type, "type is null");
     }
 
+    @Override
     @JsonProperty
-    public String getName() {
+    public String name() {
         return name;
     }
 
+    @Override
     @JsonProperty
-    public Type getType() {
+    public Type type() {
         return type;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, type);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-
-        XFileColumn other = (XFileColumn) obj;
-        return Objects.equals(this.name, other.name) &&
-                Objects.equals(this.type, other.type);
     }
 
     @Override

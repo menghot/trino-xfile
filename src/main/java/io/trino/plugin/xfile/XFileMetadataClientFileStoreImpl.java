@@ -99,17 +99,17 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
     @Override
     public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
         getXFileCatalog(session);
-        XFileSchema xFileSchema = getSchema(session, tableMetadata.getTable().getSchemaName());
+        XFileSchema xFileSchema = getSchema(session, tableMetadata.getTable().schemaName());
         List<XFileColumn> columns = tableMetadata.getColumns().stream().map(
                 c -> new XFileColumn(c.getName(), c.getType())).toList();
 
-        if (xFileSchema.getProperties().containsKey("location")) {
-            throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().getSchemaName());
+        if (xFileSchema.getProperties().containsKey(XFileConstants.SCHEMA_PROP_LOCATION)) {
+            throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().schemaName());
         }
 
         xFileSchema.getTables().add(
                 new XFileTable(
-                        tableMetadata.getTable().getTableName(),
+                        tableMetadata.getTable().tableName(),
                         columns,
                         tableMetadata.getProperties())
         );
@@ -140,7 +140,7 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
     @Override
     public void dropTable(ConnectorSession session, String schemaName, String tableName) {
         getXFileCatalog(session);
-        XFileSchema xFileSchema = getSchema(session,schemaName);
+        XFileSchema xFileSchema = getSchema(session, schemaName);
         xFileSchema.setTables(
                 xFileSchema.getTables().stream().filter(
                         t -> !t.getName().equals(tableName)).toList());

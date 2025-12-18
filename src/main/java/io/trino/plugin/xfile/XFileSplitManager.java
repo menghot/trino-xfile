@@ -18,7 +18,6 @@ import io.trino.filesystem.FileEntry;
 import io.trino.filesystem.FileIterator;
 import io.trino.spi.connector.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class XFileSplitManager
             FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
             try {
                 while (fileIterator.hasNext()) {
-                    FileEntry entry =  fileIterator.next();
+                    FileEntry entry = fileIterator.next();
                     splits.add(new XFileSplit(entry.location().toString(), Map.of(), table));
                 }
             } catch (Exception e) {

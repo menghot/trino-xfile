@@ -32,3 +32,6 @@ CSV file only support int/long/varchar type
 
 
 drop schema xfile.s3 CASCADE;
+
+
+create table xfile.s2."s3://metastore/example-dat" (id varchar, name varchar) with ("csv-skip-rows"=1, format='csv', "file-filter-regx"='.*\.dat');

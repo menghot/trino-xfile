@@ -15,10 +15,10 @@ import static io.airlift.json.JsonCodec.jsonCodec;
 
 public class XFileSplitSource implements ConnectorSplitSource {
 
-    private final DynamicFilter dynamicFilter;
+//    private final DynamicFilter dynamicFilter;
     private final List<ConnectorSplit> splits;
-    private final Map<String, String> properties;
-    private final XFileTableHandle XFileTableHandle;
+//    private final Map<String, String> properties;
+//    private final XFileTableHandle XFileTableHandle;
     private FixedSplitSource source;
 
     public XFileSplitSource(
@@ -27,10 +27,10 @@ public class XFileSplitSource implements ConnectorSplitSource {
             DynamicFilter dynamicFilter,
             List<ConnectorSplit> splits) {
 
-        this.dynamicFilter = dynamicFilter;
+//        this.dynamicFilter = dynamicFilter;
         this.splits = new ArrayList<>(splits);
-        this.properties = new HashMap<>();
-        this.XFileTableHandle = XFileTableHandle;
+//        this.properties = new HashMap<>();
+//        this.XFileTableHandle = XFileTableHandle;
     }
 
     @Override

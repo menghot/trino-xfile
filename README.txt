@@ -41,3 +41,6 @@ drop schema xfile.s3 CASCADE;
 
 create schema xfile.s3;
 create table xfile.s2."s3://metastore/example-dat" (id varchar, name varchar) with ("csv-skip-rows"=1, format='csv', "file-filter-regx"='.*\.dat');
+
+-- predicate pushdown example
+select *,__file_path__ from xfile.s2."s3://metastore/example-dat" where __file_path__ like 's3://metastore/exampl%';

@@ -88,12 +88,14 @@ public class XFileMetadata
         XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, optionalSchemaName.get());
         Object location = xFileSchema.getProperties().get(XFileConnector.FILE_LOCATION);
         if (location != null) {
+            // List files as tables if schema has "location" configuration
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
             try {
                 FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(location.toString()));
                 while (fileIterator.hasNext()) {
                     FileEntry fileEntry = fileIterator.next();
-                    if (fileEntry.location().toString().matches(XFileConnector.FILE_FILTER_REGEX)) {
+                    String fileFilterRegx = xFileSchema.getProperties().getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
+                    if (fileEntry.location().toString().matches(fileFilterRegx)) {
                         builder.add(new SchemaTableName(optionalSchemaName.get(), fileEntry.location().toString()));
                     }
                 }
@@ -124,10 +126,12 @@ public class XFileMetadata
             return null;
         }
 
-        if (!xFileSchema.getProperties().containsKey(XFileConnector.FILE_LOCATION)) {
-            return null;
-        } else if (tableName.getTableName().matches(XFileConnector.FILE_FILTER_REGEX)) {
-            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+        if (xFileSchema.getProperties().containsKey(XFileConnector.FILE_LOCATION)) {
+            String filterRegx = xFileSchema.getProperties()
+                    .getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
+            if (tableName.getTableName().matches(filterRegx)) {
+                return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
+            }
         }
 
         return null;
@@ -149,9 +153,20 @@ public class XFileMetadata
 
             return new ConnectorTableMetadata(schemaTableName, listBuilder.build(), table.getProperties());
         } else {
-            // Read table metadata from file (parquet, csv...)
+            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getSchemaName());
+            if (xFileSchema == null) {
+                return null;
+            }
+
+            String predicateFormat = "";
+            if (schemaTableName.getTableName().endsWith(".parquet")) {
+                predicateFormat = "parquet";
+            }  else if (schemaTableName.getTableName().matches(XFileConnector.FILE_TABLE_CSV_REGEX)) {
+                predicateFormat = "csv";
+            }
+            String format = xFileSchema.getProperties().getOrDefault(XFileConnector.FILE_FORMAT, predicateFormat).toString();
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
-            return XFileTableMetadataUtils.readTableMetadataFromFile(trinoFileSystem, schemaTableName);
+            return XFileTableMetadataUtils.readTableMetadataFromFile(trinoFileSystem, schemaTableName, format);
         }
     }
 

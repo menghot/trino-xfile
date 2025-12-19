@@ -25,14 +25,14 @@ import static io.airlift.slice.SizeOf.estimatedSizeOf;
 import static io.airlift.slice.SizeOf.instanceSize;
 import static java.util.Objects.requireNonNull;
 
-public record XFileSplit(String uri, Map<String, String> splitInfos, XFileTable xFileTable)
+public record XFileSplit(String uri, Map<String, Object> splitInfos, XFileTable xFileTable)
         implements ConnectorSplit {
     private static final int INSTANCE_SIZE = instanceSize(XFileSplit.class);
 
     @JsonCreator
     public XFileSplit(
             @JsonProperty("uri") String uri,
-            @JsonProperty("properties") Map<String, String> splitInfos,
+            @JsonProperty("properties") Map<String, Object> splitInfos,
             @JsonProperty("xFileTable") XFileTable xFileTable) {
         this.uri = requireNonNull(uri, "uri is null");
         this.splitInfos = Objects.requireNonNullElseGet(splitInfos, HashMap::new);

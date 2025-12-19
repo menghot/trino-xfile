@@ -46,14 +46,22 @@ public class XFileSplitManager
         List<ConnectorSplit> splits = new ArrayList<>();
 
         table = xFileMetadataClient.getTable(session, tableHandle.getSchemaName(), tableHandle.getTableName());
+
         if (table == null) {
+            // The table is auto discovery with schema
             SchemaTableName schemaTableName = tableHandle.getSchemaTableName();
             XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getSchemaName());
-            // copy tables properties from schema properties
+
+            // Copy tables properties from schema properties
+            // TODO: build xfile table
+
             table = new XFileTable(tableHandle.getTableName(), List.of(), xFileSchema.getProperties());
             splits.add(new XFileSplit(table.getName(), Map.of(), table));
         } else {
-            if (table.getName().matches(XFileConnector.FILE_FILTER_REGEX)) {
+
+            String fileFilterRegx = table.getProperties()
+                    .getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
+            if (table.getName().matches(fileFilterRegx)) {
                 // Single file table (csv/parquet file)
                 splits.add(new XFileSplit(table.getName(), Map.of(), table));
             } else {

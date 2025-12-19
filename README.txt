@@ -26,3 +26,6 @@ csv-skip-rows :
 csv-delimiter :
 file-filter-regx :
 file-compression-format :
+
+--------------------------------------
+CSV file only support int/long/varchar type

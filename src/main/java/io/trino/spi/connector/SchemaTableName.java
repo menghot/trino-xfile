@@ -16,51 +16,77 @@ package io.trino.spi.connector;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 import static io.airlift.slice.SizeOf.estimatedSizeOf;
 import static io.airlift.slice.SizeOf.instanceSize;
 import static io.trino.spi.connector.SchemaUtil.checkNotEmpty;
 import static java.util.Locale.ENGLISH;
 
-public final class SchemaTableName {
+public final class SchemaTableName
+{
     private static final int INSTANCE_SIZE = instanceSize(SchemaTableName.class);
 
     private final String schemaName;
     private final String tableName;
 
     @JsonCreator
-    public SchemaTableName(@JsonProperty("schema") String schemaName, @JsonProperty("table") String tableName) {
-        this.schemaName = checkNotEmpty(schemaName, "schemaName").toLowerCase(ENGLISH);
-        if (tableName.contains("/")) {
-            this.tableName = checkNotEmpty(tableName, "tableName");
-        } else {
-            this.tableName = checkNotEmpty(tableName, "tableName").toLowerCase(ENGLISH);
-        }
+    public SchemaTableName(@JsonProperty("schema") String schemaName, @JsonProperty("table") String tableName)
+    {
+        this.schemaName = checkNotEmpty(schemaName, "schemaName");
+        this.tableName = checkNotEmpty(tableName, "tableName");
     }
 
-    public static SchemaTableName schemaTableName(String schemaName, String tableName) {
+    public static SchemaTableName schemaTableName(String schemaName, String tableName)
+    {
         return new SchemaTableName(schemaName, tableName);
     }
 
     @JsonProperty("schema")
-    public String getSchemaName() {
+    public String getSchemaName()
+    {
         return schemaName;
     }
 
     @JsonProperty("table")
-    public String getTableName() {
+    public String getTableName()
+    {
         return tableName;
     }
 
     @Override
-    public String toString() {
+    public int hashCode()
+    {
+        return Objects.hash(schemaName, tableName);
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        SchemaTableName other = (SchemaTableName) obj;
+        return Objects.equals(this.schemaName, other.schemaName) &&
+                Objects.equals(this.tableName, other.tableName);
+    }
+
+    @Override
+    public String toString()
+    {
         return schemaName + '.' + tableName;
     }
 
-    public SchemaTablePrefix toSchemaTablePrefix() {
+    public SchemaTablePrefix toSchemaTablePrefix()
+    {
         return new SchemaTablePrefix(schemaName, tableName);
     }
 
-    public long getRetainedSizeInBytes() {
+    public long getRetainedSizeInBytes()
+    {
         return INSTANCE_SIZE
                 + estimatedSizeOf(schemaName)
                 + estimatedSizeOf(tableName);

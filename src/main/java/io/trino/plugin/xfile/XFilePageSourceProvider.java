@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static io.trino.memory.context.AggregatedMemoryContext.newSimpleAggregatedMemoryContext;
 import static io.trino.plugin.xfile.parquet.ParquetReaderUtils.createParquetReader;
 
 public class XFilePageSourceProvider
@@ -59,7 +58,7 @@ public class XFilePageSourceProvider
 
         try {
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());
-            ParquetReader reader = createParquetReader(dataSource, parquetMetadata, newSimpleAggregatedMemoryContext(), types, columnNames);
+            ParquetReader reader = createParquetReader(dataSource, parquetMetadata, types, columnNames);
             return new ParquetPageDataSource(reader);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -25,7 +25,6 @@ import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.predicate.TupleDomainParquetPredicate;
 import io.trino.parquet.reader.ParquetReader;
 import io.trino.parquet.reader.RowGroupInfo;
-import io.trino.plugin.xfile.XFileConnector;
 import io.trino.plugin.xfile.XFileInternalColumn;
 import io.trino.spi.Page;
 import io.trino.spi.block.Block;
@@ -66,28 +65,6 @@ public class ParquetReaderUtils {
             List<Type> types,
             List<String> columnNames)
             throws IOException {
-        return createParquetReader(input, parquetMetadata, ParquetReaderOptions.defaultOptions(), newSimpleAggregatedMemoryContext(), types, columnNames, TupleDomain.all());
-    }
-
-    public static ParquetReader createParquetReader(
-            ParquetDataSource input,
-            ParquetMetadata parquetMetadata,
-            AggregatedMemoryContext memoryContext,
-            List<Type> types,
-            List<String> columnNames)
-            throws IOException {
-        return createParquetReader(input, parquetMetadata, ParquetReaderOptions.defaultOptions(), memoryContext, types, columnNames, TupleDomain.all());
-    }
-
-    public static ParquetReader createParquetReader(
-            ParquetDataSource input,
-            ParquetMetadata parquetMetadata,
-            ParquetReaderOptions options,
-            AggregatedMemoryContext memoryContext,
-            List<Type> types,
-            List<String> columnNames,
-            TupleDomain<String> predicate)
-            throws IOException {
         FileMetadata fileMetaData = parquetMetadata.getFileMetaData();
         MessageType fileSchema = fileMetaData.getSchema();
         MessageColumnIO messageColumnIO = getColumnIO(fileSchema, fileSchema);
@@ -107,11 +84,12 @@ public class ParquetReaderUtils {
                 hiddenColumnNames.add(columnNames.get(i));
             } else if (columnNames.get(i).equals(XFileInternalColumn.ROW_NUM.getName())) {
                 hiddenColumnNames.add(columnNames.get(i));
-            }  else {
+            } else {
                 throw new RuntimeException("Column '" + columnNames.get(i) + "' not found in parquet file");
             }
         }
         Map<List<String>, ColumnDescriptor> descriptorsByPath = getDescriptors(fileSchema, fileSchema);
+        TupleDomain<String> predicate = TupleDomain.all();
         TupleDomain<ColumnDescriptor> parquetTupleDomain = predicate.transformKeys(
                 columnName -> descriptorsByPath.get(ImmutableList.of(columnName.toLowerCase(ENGLISH))));
         TupleDomainParquetPredicate parquetPredicate = buildPredicate(fileSchema, parquetTupleDomain, descriptorsByPath, UTC);
@@ -125,7 +103,8 @@ public class ParquetReaderUtils {
                 descriptorsByPath,
                 UTC,
                 1000,
-                options);
+                ParquetReaderOptions.defaultOptions()
+        );
 
         return new XFileParquetReader(
                 Optional.ofNullable(fileMetaData.getCreatedBy()),
@@ -135,8 +114,8 @@ public class ParquetReaderUtils {
                 rowGroups,
                 input,
                 UTC,
-                memoryContext,
-                options,
+                newSimpleAggregatedMemoryContext(),
+                ParquetReaderOptions.defaultOptions(),
                 exception -> {
                     throwIfUnchecked(exception);
                     return new RuntimeException(exception);
@@ -162,7 +141,6 @@ public class ParquetReaderUtils {
                                   Optional<TupleDomainParquetPredicate> parquetPredicate,
                                   Optional<ParquetWriteValidation> writeValidation) throws IOException {
             super(fileCreatedBy, columnFields, appendRowNumberColumn, rowGroups, dataSource, timeZone, memoryContext, options, exceptionTransform, parquetPredicate, writeValidation, Optional.empty());
-
             this.hiddenColumnNames = hiddenColumnNames;
         }
 
@@ -174,8 +152,9 @@ public class ParquetReaderUtils {
                 return null;
             }
 
+            // Add blocks for hidden fields. e.g __file_path__, __row_num__
             Page p = page.getPage();
-            Block[] blocks = new Block[p.getChannelCount() + hiddenColumnNames.size()]; // add blocks for hidden fields. e.g __file_path__
+            Block[] blocks = new Block[p.getChannelCount() + hiddenColumnNames.size()];
             for (int i = 0; i < p.getChannelCount(); i++) {
                 blocks[i] = p.getBlock(i);
             }
@@ -183,6 +162,7 @@ public class ParquetReaderUtils {
             int index = 0;
             for (String hiddenColumnName : hiddenColumnNames) {
                 if (XFileInternalColumn.FILE_PATH.getName().equals(hiddenColumnName)) {
+                    // __file_path__
                     String value = getDataSource().getId().toString();
                     VariableWidthBlockBuilder filePathBlockBuilder = new VariableWidthBlockBuilder(null, p.getPositionCount(), value.length());
                     for (int i = 0; i < p.getPositionCount(); i++) {
@@ -190,14 +170,15 @@ public class ParquetReaderUtils {
                     }
                     blocks[p.getChannelCount() + index] = filePathBlockBuilder.build();
                 } else if (XFileInternalColumn.ROW_NUM.getName().equals(hiddenColumnName)) {
+                    // __row_num__
                     long[] rowNumbers = new long[p.getPositionCount()];
                     long startRowNumber = this.lastBatchStartRow();
                     for (int i = 0; i < p.getPositionCount(); ++i) {
-                        rowNumbers[i] = startRowNumber + (long) i + 1;
+                        rowNumbers[i] = startRowNumber + i + 1;
                     }
                     blocks[p.getChannelCount() + index] = new LongArrayBlock(p.getPositionCount(), Optional.empty(), rowNumbers);
                 }
-                index ++;
+                index++;
             }
             return SourcePage.create(new Page(p.getPositionCount(), blocks));
         }

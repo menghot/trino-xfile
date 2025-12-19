@@ -29,3 +29,6 @@ file-compression-format :
 
 --------------------------------------
 CSV file only support int/long/varchar type
+
+
+drop schema xfile.s3 CASCADE;

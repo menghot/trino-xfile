@@ -41,23 +41,23 @@ public class XFileRecordSetTest {
 
     @Test
     public void testGetColumnTypes() {
-        RecordSet recordSet = new XFileRecordSet(new XFileSplit(dataUri, null, null), ImmutableList.of(
+        RecordSet recordSet = new XFileRecordSet(new XFileSplit(dataUri, null), ImmutableList.of(
                 new XFileColumnHandle("text", createUnboundedVarcharType(), 0, false),
                 new XFileColumnHandle("value", BIGINT, 1, false)), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of(createUnboundedVarcharType(), BIGINT));
 
-        recordSet = new XFileRecordSet(new XFileSplit(dataUri, null, null), ImmutableList.of(
+        recordSet = new XFileRecordSet(new XFileSplit(dataUri, null), ImmutableList.of(
                 new XFileColumnHandle("value", BIGINT, 1, false),
                 new XFileColumnHandle("text", createUnboundedVarcharType(), 0, false)), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of(BIGINT, createUnboundedVarcharType()));
 
-        recordSet = new XFileRecordSet(new XFileSplit(dataUri, null, null), ImmutableList.of(
+        recordSet = new XFileRecordSet(new XFileSplit(dataUri, null), ImmutableList.of(
                 new XFileColumnHandle("value", BIGINT, 1, false),
                 new XFileColumnHandle("value", BIGINT, 1, false),
                 new XFileColumnHandle("text", createUnboundedVarcharType(), 0, false)), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of(BIGINT, BIGINT, createUnboundedVarcharType()));
 
-        recordSet = new XFileRecordSet(new XFileSplit(dataUri, null, null), ImmutableList.of(), null);
+        recordSet = new XFileRecordSet(new XFileSplit(dataUri, null), ImmutableList.of(), null);
         assertThat(recordSet.getColumnTypes()).isEqualTo(ImmutableList.of());
     }
 

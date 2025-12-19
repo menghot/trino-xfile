@@ -20,7 +20,7 @@ import static io.airlift.json.JsonCodec.jsonCodec;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class XFileSplitTest {
-    private final XFileSplit split = new XFileSplit("http://127.0.0.1/test.file", null, null);
+    private final XFileSplit split = new XFileSplit("http://127.0.0.1/test.file", null);
 
     @Test
     public void testJsonRoundTrip() {

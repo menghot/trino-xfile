@@ -51,12 +51,12 @@ public class XFileTableMetadataUtils {
             }
         }
 
-        setHiddenColumns(listBuilder);
+        configHiddenColumns(listBuilder);
 
         return new ConnectorTableMetadata(tableName, listBuilder.build());
     }
 
-    public static void setHiddenColumns(ImmutableList.Builder<ColumnMetadata> listBuilder) {
+    public static void configHiddenColumns(ImmutableList.Builder<ColumnMetadata> listBuilder) {
         // __file_path__
         ColumnMetadata.Builder filePathBuilder = ColumnMetadata.builder();
         filePathBuilder.setHidden(true);
@@ -83,13 +83,16 @@ public class XFileTableMetadataUtils {
             FileMetadata fileMetaData = parquetMetadata.getFileMetaData();
             MessageType fileSchema = fileMetaData.getSchema();
 
-            ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
+            ImmutableList.Builder<ColumnMetadata> builder = ImmutableList.builder();
             for (org.apache.parquet.schema.Type field : fileSchema.getFields()) {
                 String name = field.getName();
                 Type trinoType = convertParquetTypeToTrino(field);
-                columnsMetadata.add(new ColumnMetadata(name, trinoType));
+                builder.add(new ColumnMetadata(name, trinoType));
             }
-            return new ConnectorTableMetadata(tableName, columnsMetadata.build());
+
+            configHiddenColumns(builder);
+
+            return new ConnectorTableMetadata(tableName, builder.build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

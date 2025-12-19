@@ -25,8 +25,11 @@ import io.trino.parquet.metadata.ParquetMetadata;
 import io.trino.parquet.predicate.TupleDomainParquetPredicate;
 import io.trino.parquet.reader.ParquetReader;
 import io.trino.parquet.reader.RowGroupInfo;
+import io.trino.plugin.xfile.XFileConnector;
+import io.trino.plugin.xfile.XFileInternalColumn;
 import io.trino.spi.Page;
 import io.trino.spi.block.Block;
+import io.trino.spi.block.LongArrayBlock;
 import io.trino.spi.block.VariableWidthBlockBuilder;
 import io.trino.spi.connector.SourcePage;
 import io.trino.spi.predicate.TupleDomain;
@@ -39,10 +42,7 @@ import org.apache.parquet.schema.MessageType;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.google.common.base.Throwables.throwIfUnchecked;
@@ -92,6 +92,8 @@ public class ParquetReaderUtils {
         MessageType fileSchema = fileMetaData.getSchema();
         MessageColumnIO messageColumnIO = getColumnIO(fileSchema, fileSchema);
         ImmutableList.Builder<Column> columnFields = ImmutableList.builder();
+
+        List<String> hiddenColumnNames = new ArrayList<>();
         for (int i = 0; i < types.size(); i++) {
             ColumnIO columnIO = lookupColumnByName(messageColumnIO, columnNames.get(i));
             if (columnIO != null) {
@@ -101,7 +103,11 @@ public class ParquetReaderUtils {
                                 types.get(i),
                                 columnIO)
                                 .orElseThrow()));
-            } else {
+            } else if (columnNames.get(i).equals(XFileInternalColumn.FILE_PATH.getName())) {
+                hiddenColumnNames.add(columnNames.get(i));
+            } else if (columnNames.get(i).equals(XFileInternalColumn.ROW_NUM.getName())) {
+                hiddenColumnNames.add(columnNames.get(i));
+            }  else {
                 throw new RuntimeException("Column '" + columnNames.get(i) + "' not found in parquet file");
             }
         }
@@ -123,6 +129,7 @@ public class ParquetReaderUtils {
 
         return new XFileParquetReader(
                 Optional.ofNullable(fileMetaData.getCreatedBy()),
+                hiddenColumnNames,
                 columnFields.build(),
                 false,
                 rowGroups,
@@ -140,8 +147,23 @@ public class ParquetReaderUtils {
 
     public static class XFileParquetReader extends ParquetReader {
 
-        public XFileParquetReader(Optional<String> fileCreatedBy, List<Column> columnFields, boolean appendRowNumberColumn, List<RowGroupInfo> rowGroups, ParquetDataSource dataSource, DateTimeZone timeZone, AggregatedMemoryContext memoryContext, ParquetReaderOptions options, Function<Exception, RuntimeException> exceptionTransform, Optional<TupleDomainParquetPredicate> parquetPredicate, Optional<ParquetWriteValidation> writeValidation) throws IOException {
+        List<String> hiddenColumnNames;
+
+        public XFileParquetReader(Optional<String> fileCreatedBy,
+                                  List<String> hiddenColumnNames,
+                                  List<Column> columnFields,
+                                  boolean appendRowNumberColumn,
+                                  List<RowGroupInfo> rowGroups,
+                                  ParquetDataSource dataSource,
+                                  DateTimeZone timeZone,
+                                  AggregatedMemoryContext memoryContext,
+                                  ParquetReaderOptions options,
+                                  Function<Exception, RuntimeException> exceptionTransform,
+                                  Optional<TupleDomainParquetPredicate> parquetPredicate,
+                                  Optional<ParquetWriteValidation> writeValidation) throws IOException {
             super(fileCreatedBy, columnFields, appendRowNumberColumn, rowGroups, dataSource, timeZone, memoryContext, options, exceptionTransform, parquetPredicate, writeValidation, Optional.empty());
+
+            this.hiddenColumnNames = hiddenColumnNames;
         }
 
         @Override
@@ -153,23 +175,30 @@ public class ParquetReaderUtils {
             }
 
             Page p = page.getPage();
-            Block[] blocks = new Block[p.getChannelCount() + 4];
+            Block[] blocks = new Block[p.getChannelCount() + hiddenColumnNames.size()]; // add blocks for hidden fields. e.g __file_path__
             for (int i = 0; i < p.getChannelCount(); i++) {
                 blocks[i] = p.getBlock(i);
             }
 
-            String value = String.valueOf(System.currentTimeMillis());
-            VariableWidthBlockBuilder builder = new VariableWidthBlockBuilder(null, p.getPositionCount(), value.length());
-            for (int i = 0; i < p.getPositionCount(); i++) {
-                builder.writeEntry(Slices.utf8Slice(value));
+            int index = 0;
+            for (String hiddenColumnName : hiddenColumnNames) {
+                if (XFileInternalColumn.FILE_PATH.getName().equals(hiddenColumnName)) {
+                    String value = getDataSource().getId().toString();
+                    VariableWidthBlockBuilder filePathBlockBuilder = new VariableWidthBlockBuilder(null, p.getPositionCount(), value.length());
+                    for (int i = 0; i < p.getPositionCount(); i++) {
+                        filePathBlockBuilder.writeEntry(Slices.utf8Slice(value));
+                    }
+                    blocks[p.getChannelCount() + index] = filePathBlockBuilder.build();
+                } else if (XFileInternalColumn.ROW_NUM.getName().equals(hiddenColumnName)) {
+                    long[] rowNumbers = new long[p.getPositionCount()];
+                    long startRowNumber = this.lastBatchStartRow();
+                    for (int i = 0; i < p.getPositionCount(); ++i) {
+                        rowNumbers[i] = startRowNumber + (long) i + 1;
+                    }
+                    blocks[p.getChannelCount() + index] = new LongArrayBlock(p.getPositionCount(), Optional.empty(), rowNumbers);
+                }
+                index ++;
             }
-
-            // Add additional blocks for hidden columns
-            blocks[p.getChannelCount()] = builder.build();     // __data_uri__
-            blocks[p.getChannelCount() + 1] = builder.build(); // __params__
-            blocks[p.getChannelCount() + 2] = builder.build(); // __http_header__
-            blocks[p.getChannelCount() + 3] = builder.build(); // __http_body__
-
             return SourcePage.create(new Page(p.getPositionCount(), blocks));
         }
     }

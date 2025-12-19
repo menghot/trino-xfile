@@ -13,7 +13,7 @@ public class ParquetFileDataSource extends AbstractParquetDataSource {
     TrinoInputFile trinoInputFile;
 
     public ParquetFileDataSource(TrinoInputFile trinoInputFile) throws IOException {
-        super(new ParquetDataSourceId(trinoInputFile.location().path()), trinoInputFile.length(), ParquetReaderOptions.defaultOptions());
+        super(new ParquetDataSourceId(trinoInputFile.location().toString()), trinoInputFile.length(), ParquetReaderOptions.defaultOptions());
         this.trinoInputFile = trinoInputFile;
     }
 

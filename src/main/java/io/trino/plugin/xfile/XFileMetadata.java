@@ -21,8 +21,6 @@ import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
-import io.trino.spi.type.BigintType;
-import io.trino.spi.type.VarcharType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -147,7 +145,7 @@ public class XFileMetadata
             }
 
             //Set hidden columns  __file_path__, __row_num__ ...
-            XFileTableMetadataUtils.setHiddenColumns(listBuilder);
+            XFileTableMetadataUtils.configHiddenColumns(listBuilder);
 
             return new ConnectorTableMetadata(schemaTableName, listBuilder.build(), table.getProperties());
         } else {

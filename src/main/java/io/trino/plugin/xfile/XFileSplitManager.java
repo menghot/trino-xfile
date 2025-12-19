@@ -48,7 +48,7 @@ public class XFileSplitManager
         table = xFileMetadataClient.getTable(session, tableHandle.getSchemaName(), tableHandle.getTableName());
         if (table == null) {
             SchemaTableName schemaTableName = tableHandle.getSchemaTableName();
-            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getTableName());
+            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getSchemaName());
             // copy tables properties from schema properties
             table = new XFileTable(tableHandle.getTableName(), List.of(), xFileSchema.getProperties());
             splits.add(new XFileSplit(table.getName(), Map.of(), table));

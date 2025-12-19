@@ -17,11 +17,15 @@ import com.google.inject.Inject;
 import io.trino.filesystem.FileEntry;
 import io.trino.filesystem.FileIterator;
 import io.trino.spi.connector.*;
+import io.trino.spi.predicate.NullableValue;
+import io.trino.spi.type.VarcharType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static io.airlift.slice.Slices.utf8Slice;
 import static java.util.Objects.requireNonNull;
 
 public class XFileSplitManager
@@ -47,6 +51,17 @@ public class XFileSplitManager
 
         table = xFileMetadataClient.getTable(session, tableHandle.getSchemaName(), tableHandle.getTableName());
 
+        AtomicReference<XFileColumnHandle> xFileColumnHandle = new AtomicReference<>();
+        if (constraint.getPredicateColumns().isPresent() && constraint.predicate().isPresent()) {
+            constraint.getPredicateColumns().get().forEach(column -> {
+                XFileColumnHandle columnHandle = (XFileColumnHandle) column;
+                if (columnHandle.getColumnName().equals(XFileInternalColumn.FILE_PATH.getName())) {
+                    xFileColumnHandle.set(columnHandle);
+                }
+            });
+        }
+
+
         if (table == null) {
             // The table is auto discovery with schema
             SchemaTableName schemaTableName = tableHandle.getSchemaTableName();
@@ -60,12 +75,20 @@ public class XFileSplitManager
                 // If table name has extension. e.g. .csv .parquet,  it is a single file table
                 splits.add(new XFileSplit(table.getName(), table.getProperties()));
             } else {
-                // folder as table, e.g. s3://metastore/example-csv
+                // Folder as table, e.g. s3://metastore/example-csv
                 FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
                 try {
                     while (fileIterator.hasNext()) {
                         FileEntry entry = fileIterator.next();
-                        splits.add(new XFileSplit(entry.location().toString(), table.getProperties()));
+                        // Implement predicate pushdown, which allows the connector to skip reading unnecessary data files
+                        if(constraint.predicate().isPresent() && xFileColumnHandle.get() != null) {
+                            Map<ColumnHandle, NullableValue> files = Map.of(xFileColumnHandle.get(), new NullableValue(VarcharType.VARCHAR, utf8Slice(entry.location().toString())));
+                            if (constraint.predicate().get().test(files)) {
+                                splits.add(new XFileSplit(entry.location().toString(), table.getProperties()));
+                            }
+                        } else {
+                            splits.add(new XFileSplit(entry.location().toString(), table.getProperties()));
+                        }
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);

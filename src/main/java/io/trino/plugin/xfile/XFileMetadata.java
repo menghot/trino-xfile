@@ -49,33 +49,33 @@ public class XFileMetadata
     }
 
 
-    @Override
-    public Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilter(ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
-        XFileTableHandle XFileTableHandle = (XFileTableHandle) handle;
-        if (constraint.getSummary().getDomains().isPresent()) {
-            constraint.getSummary().getDomains().get().forEach((ch, domain) -> {
-                XFileColumnHandle columnHandle = (XFileColumnHandle) ch;
-                if (domain.isSingleValue()) {
-                    if (domain.getSingleValue() instanceof Slice s) {
-                        XFileTableHandle.getFilterMap().putIfAbsent(columnHandle.getColumnName(), s.toStringUtf8());
-                    }
-                } else {
-                    List<String> values = new ArrayList<>();
-                    domain.getValues().getRanges().getOrderedRanges().iterator().forEachRemaining(r -> {
-                        if (r.isSingleValue()) {
-                            if (r.getSingleValue() instanceof Slice s) {
-                                values.add(s.toStringUtf8());
-                            }
-                        }
-                        // more types support
-                    });
-                    XFileTableHandle.getFilterMap().putIfAbsent(columnHandle.getColumnName(), values);
-                }
-            });
-        }
-
-        return ConnectorMetadata.super.applyFilter(session, XFileTableHandle, constraint);
-    }
+//    @Override
+//    public Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilter(ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
+//        XFileTableHandle XFileTableHandle = (XFileTableHandle) handle;
+//        if (constraint.getSummary().getDomains().isPresent()) {
+//            constraint.getSummary().getDomains().get().forEach((ch, domain) -> {
+//                XFileColumnHandle columnHandle = (XFileColumnHandle) ch;
+//                if (domain.isSingleValue()) {
+//                    if (domain.getSingleValue() instanceof Slice s) {
+//                        XFileTableHandle.getFilterMap().putIfAbsent(columnHandle.getColumnName(), s.toStringUtf8());
+//                    }
+//                } else {
+//                    List<String> values = new ArrayList<>();
+//                    domain.getValues().getRanges().getOrderedRanges().iterator().forEachRemaining(r -> {
+//                        if (r.isSingleValue()) {
+//                            if (r.getSingleValue() instanceof Slice s) {
+//                                values.add(s.toStringUtf8());
+//                            }
+//                        }
+//                        // more types support
+//                    });
+//                    XFileTableHandle.getFilterMap().putIfAbsent(columnHandle.getColumnName(), values);
+//                }
+//            });
+//        }
+//
+//        return ConnectorMetadata.super.applyFilter(session, XFileTableHandle, constraint);
+//    }
 
 
     @Override

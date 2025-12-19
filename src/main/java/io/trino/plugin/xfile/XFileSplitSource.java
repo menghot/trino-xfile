@@ -36,58 +36,58 @@ public class XFileSplitSource implements ConnectorSplitSource {
     @Override
     public synchronized CompletableFuture<ConnectorSplitBatch> getNextBatch(int maxSize) {
         if (source == null) {
-            extractDynamicFilter();
+//            extractDynamicFilter();
             Collections.shuffle(splits);
             source = new FixedSplitSource(splits);
         }
         return source.getNextBatch(maxSize);
     }
 
-    private void extractDynamicFilter() {
-        if (dynamicFilter == null) {
-            return;
-        }
-        while (!dynamicFilter.isComplete()) {
-            if (dynamicFilter.isAwaitable()) {
-                try {
-                    dynamicFilter.isBlocked().get(180, TimeUnit.SECONDS);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException("Dynamic filter execution error", e);
-                } catch (TimeoutException e) {
-                    throw new RuntimeException("Dynamic filter timeout", e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("Dynamic filter interrupted", e);
-                }
-            }
-        }
-
-        if (dynamicFilter.getCurrentPredicate().getDomains().isPresent()) {
-            dynamicFilter.getCurrentPredicate().getDomains().get().forEach(this::accept);
-        }
-    }
-
-    private void accept(ColumnHandle columnHandle, Domain domain) {
-        XFileColumnHandle XFileColumnHandle = (XFileColumnHandle) columnHandle;
-        if (domain.isSingleValue()) {
-            if (domain.getSingleValue() instanceof Slice s) {
-                XFileTableHandle.getFilterMap().putIfAbsent(XFileColumnHandle.getColumnName(), s.toStringUtf8());
-            }
-        } else {
-            List<Object> values = new ArrayList<>();
-            domain.getValues().getRanges().getOrderedRanges().iterator().forEachRemaining(r -> {
-                if (r.isSingleValue()) {
-                    if (r.getSingleValue() instanceof Slice s) {
-                        values.add(s.toStringUtf8());
-                    } else {
-                        values.add(r.getSingleValue());
-                    }
-                }
-            });
-            XFileTableHandle.getFilterMap().putIfAbsent(XFileColumnHandle.getColumnName(), values);
-            JsonCodec<XFileTableHandle> codec = jsonCodec(XFileTableHandle.class);
-            System.out.println(codec.toJson(XFileTableHandle));
-        }
-    }
+//    private void extractDynamicFilter() {
+//        if (dynamicFilter == null) {
+//            return;
+//        }
+//        while (!dynamicFilter.isComplete()) {
+//            if (dynamicFilter.isAwaitable()) {
+//                try {
+//                    dynamicFilter.isBlocked().get(180, TimeUnit.SECONDS);
+//                } catch (ExecutionException e) {
+//                    throw new RuntimeException("Dynamic filter execution error", e);
+//                } catch (TimeoutException e) {
+//                    throw new RuntimeException("Dynamic filter timeout", e);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException("Dynamic filter interrupted", e);
+//                }
+//            }
+//        }
+//
+//        if (dynamicFilter.getCurrentPredicate().getDomains().isPresent()) {
+//            dynamicFilter.getCurrentPredicate().getDomains().get().forEach(this::accept);
+//        }
+//    }
+//
+//    private void accept(ColumnHandle columnHandle, Domain domain) {
+//        XFileColumnHandle XFileColumnHandle = (XFileColumnHandle) columnHandle;
+//        if (domain.isSingleValue()) {
+//            if (domain.getSingleValue() instanceof Slice s) {
+//                XFileTableHandle.getFilterMap().putIfAbsent(XFileColumnHandle.getColumnName(), s.toStringUtf8());
+//            }
+//        } else {
+//            List<Object> values = new ArrayList<>();
+//            domain.getValues().getRanges().getOrderedRanges().iterator().forEachRemaining(r -> {
+//                if (r.isSingleValue()) {
+//                    if (r.getSingleValue() instanceof Slice s) {
+//                        values.add(s.toStringUtf8());
+//                    } else {
+//                        values.add(r.getSingleValue());
+//                    }
+//                }
+//            });
+//            XFileTableHandle.getFilterMap().putIfAbsent(XFileColumnHandle.getColumnName(), values);
+//            JsonCodec<XFileTableHandle> codec = jsonCodec(XFileTableHandle.class);
+//            System.out.println(codec.toJson(XFileTableHandle));
+//        }
+//    }
 
 
     @Override

@@ -57,15 +57,15 @@ public class XFileSplitManager
             String fileFilterRegx = table.getProperties()
                     .getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
             if (table.getName().matches(fileFilterRegx)) {
-                // Single file table (csv/parquet file)
+                // If table name has extension. e.g. .csv .parquet,  it is a single file table
                 splits.add(new XFileSplit(table.getName(), table.getProperties()));
             } else {
-                // Folder table
+                // folder as table, e.g. s3://metastore/example-csv
                 FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
                 try {
                     while (fileIterator.hasNext()) {
                         FileEntry entry = fileIterator.next();
-                        splits.add(new XFileSplit(entry.location().toString(),table.getProperties()));
+                        splits.add(new XFileSplit(entry.location().toString(), table.getProperties()));
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);

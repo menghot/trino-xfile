@@ -48,6 +48,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
     private final CountingInputStream countingInputStream;
     private final XFileSplit xFileSplit;
 
+    // Store field values for CSV row
     private String[] fields;
     private long currentRowNum = 0;
 

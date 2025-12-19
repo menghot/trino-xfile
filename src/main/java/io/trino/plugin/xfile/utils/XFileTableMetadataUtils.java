@@ -34,7 +34,7 @@ public class XFileTableMetadataUtils {
             return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
         }
 
-        // support more file types
+        // support more file types,e.g. json, excel...
         return null;
     }
 

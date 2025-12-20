@@ -151,7 +151,8 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
     public FileIterator listFiles(ConnectorSession session, String path) {
         TrinoFileSystem fileSystem = trinoFileSystemFactory.create(session);
         try {
-            return fileSystem.listFiles(Location.of(path));
+            String filePath = path.replaceAll("#\\d+$","");
+            return fileSystem.listFiles(Location.of(filePath));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

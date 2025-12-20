@@ -1,5 +1,6 @@
 --------------------------------------
 Table properties:
+
 location :
 format :
 csv-skip-rows :
@@ -9,7 +10,9 @@ file-compression-format :
 io.trino.metadata.MetadataUtil;
 io.trino.sql.tree.QualifiedName
 io.trino.spi.connector.SchemaTableName
-CSV file only support int/long/varchar type
+
+Xfile Types (csv):
+int/long/varchar type
 --------------------------------------
 CREATE SCHEMA xfile.s1
 WITH (
@@ -33,8 +36,13 @@ WITH (
     format = 'csv'
 )
 --------------------------------------
-select *,__file_path__ from xfile.s2."s3://metastore/example-dat"
-where __file_path__ like 's3://metastore/exampl%';
+select *,
+    __file_path__,
+    __row_num__
+from
+    xfile.s2."s3://metastore/example-dat"
+where
+    __file_path__ like 's3://metastore/exampl%';
 --------------------------------------
 CREATE TABLE xfile.s2."s3://metastore/example-csv" (
     id varchar,
@@ -52,10 +60,4 @@ CREATE TABLE xfile.s1."s3://metastore/example-data/users2.csv.gz" (
    age varchar
 )
 --------------------------------------
-location
-format
-file-compression-format
-file-filter-regx
-csv-skip-rows
-csv-delimiter;
---------------------------------------
+

@@ -15,7 +15,7 @@ package io.trino.plugin.xfile.record;
 
 import com.google.common.base.Strings;
 import com.google.common.io.CountingInputStream;
-import com.opencsv.CSVReader;
+import com.opencsv.*;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import io.trino.filesystem.TrinoFileSystem;
@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -47,6 +48,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
     private final Iterator<String[]> lineIterator;
     private final CountingInputStream countingInputStream;
     private final XFileSplit xFileSplit;
+    private final CSVReader csvReader;
 
     // Store field values for CSV row
     private String[] fields;
@@ -57,7 +59,22 @@ public class XFileCsvRecordCursor implements RecordCursor {
         this.xFileSplit  = xFileSplit;
         InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri());
         countingInputStream = new CountingInputStream(is);
-        CSVReader csvReader = new CSVReader(new InputStreamReader(countingInputStream));
+        char separator =  xFileSplit.properties().getOrDefault(XFileConnector.CSV_DELIMITER_PROPERTY, ICSVParser.DEFAULT_SEPARATOR ).toString().charAt(0);
+        CSVParser parser = new CSVParserBuilder()
+            .withSeparator(separator)
+            .withQuoteChar(ICSVParser.DEFAULT_QUOTE_CHARACTER)
+            .withEscapeChar(ICSVParser.DEFAULT_ESCAPE_CHARACTER)
+            .withStrictQuotes(ICSVParser.DEFAULT_STRICT_QUOTES)
+            .withIgnoreLeadingWhiteSpace(ICSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE)
+            .withIgnoreQuotations(ICSVParser.DEFAULT_IGNORE_QUOTATIONS)
+            .withFieldAsNull(ICSVParser.DEFAULT_NULL_FIELD_INDICATOR)
+            .withErrorLocale(Locale.getDefault())
+            .build();
+
+        csvReader = new CSVReaderBuilder(new InputStreamReader(countingInputStream))
+            .withCSVParser(parser)
+            .build();
+
         lineIterator = csvReader.iterator();
         int skipRows = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.CSV_SKIP_ROWS_PROPERTY, "0").toString()) ;
         while (lineIterator.hasNext() && skipRows > 0) {
@@ -152,5 +169,6 @@ public class XFileCsvRecordCursor implements RecordCursor {
     @Override
     public void close() {
         IOUtils.closeQuietly(countingInputStream);
+        IOUtils.closeQuietly(csvReader);
     }
 }

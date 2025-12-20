@@ -43,7 +43,7 @@ public class XFilePluginTest {
                                 "fs.native-s3.enabled", "true",
                                 "s3.aws-access-key", "nDu2sEEwRzEqshz4L0dH",
                                 "s3.aws-secret-key", "d70ZQaHihIpnMAloRXIrTTl8gtj57jS88ewXhjAP",
-                                "s3.endpoint", "http://192.168.80.241:9000",
+                                "s3.endpoint", "http://127.0.0.1:9000",
                                 "s3.path-style-access", "true",
                                 "s3.region", "dummy",
 
@@ -63,9 +63,9 @@ public class XFilePluginTest {
 
     public static void main(String[] args) throws Exception {
 
-        XFileHttpServer XFileHttpServer = new XFileHttpServer(8083);
-        String dataUri = XFileHttpServer.resolve("/example-data/numbers-2.csv").toString();
-        System.out.println(dataUri);
+//        XFileHttpServer XFileHttpServer = new XFileHttpServer(8083);
+//        String dataUri = XFileHttpServer.resolve("/example-data/numbers-2.csv").toString();
+//        System.out.println(dataUri);
 
         QueryRunner queryRunner = builder()
                 .addCoordinatorProperty("http-server.http.port", "8082")
@@ -79,8 +79,6 @@ public class XFilePluginTest {
 
         queryRunner.execute("show catalogs").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("catalog: %s", r.toString()));
-
-        //queryRunner.execute("create schema xfile.local WITH (\"location\"='local:///')");
 
         queryRunner.execute("show schemas from xfile").getMaterializedRows()
                 .iterator().forEachRemaining(r -> log.info("schemas: %s", r.toString()));

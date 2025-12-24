@@ -88,7 +88,8 @@ public class XFilePageSourceProvider
             }
         } else if (
                 "csv".equals(xFileSplit.properties().get(XFileConnector.FILE_FORMAT)) ||
-                        xFileSplit.uri().matches(XFileConnector.FILE_TABLE_CSV_REGEX)) {
+                        xFileSplit.uri().matches(XFileConnector.FILE_TABLE_CSV_REGEX) ||
+                        xFileSplit.uri().endsWith(".json")) {
             return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, xFileSplit, tableHandle, columns));
         }
 

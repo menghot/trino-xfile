@@ -41,6 +41,7 @@ public class XFileJsonRecordCursor implements RecordCursor {
     private final CountingInputStream countingInputStream;
 
     private String jsonText;
+    private boolean readed = false;
 
     public XFileJsonRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
@@ -66,11 +67,16 @@ public class XFileJsonRecordCursor implements RecordCursor {
 
     @Override
     public boolean advanceNextPosition() {
-        try {
-            // Read file as a json string
-            jsonText = IOUtils.toString(countingInputStream, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+
+        if (!readed) {
+            readed = true;
+            try {
+                // Read file as a json string
+                jsonText = IOUtils.toString(countingInputStream, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return true;
         }
         // No more rows
         return false;

@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 
 public class XFileConnector implements Connector {
 
-    public static final String FILE_FILTER_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|csv\\.zip|parquet)$";
+    public static final String FILE_FILTER_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|json|csv\\.zip|parquet)$";
     public static final String FILE_TABLE_CSV_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|csv\\.zip)$";
 
     public static final String FILE_COMPRESSION_FORMAT_PROPERTY = "file-compression-format";

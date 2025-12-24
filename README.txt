@@ -60,4 +60,34 @@ CREATE TABLE xfile.s1."s3://metastore/example-data/users2.csv.gz" (
    age varchar
 )
 --------------------------------------
-
+ CREATE TABLE xfile.s2."s3://metastore/example-parquet" (
+    c_customer_sk bigint,
+    c_customer_id varchar,
+    c_current_cdemo_sk bigint,
+    c_current_hdemo_sk bigint,
+    c_current_addr_sk bigint,
+    c_first_shipto_date_sk bigint,
+    c_first_sales_date_sk bigint,
+    c_salutation varchar,
+    c_first_name varchar,
+    c_last_name varchar,
+    c_preferred_cust_flag varchar,
+    c_birth_day integer,
+    c_birth_month integer,
+    c_birth_year integer,
+    c_birth_country varchar,
+    c_login varchar,
+    c_email_address varchar,
+    c_last_review_date_sk bigint
+ )
+ WITH (
+    "file-filter-regx" = '.*\.parquet$',
+    format = 'parquet'
+ )
+--------------------------------------
+ CREATE SCHEMA xfile.s4
+ WITH (
+    location = 's3://metastore/example-parquet'
+    "file-filter-regx" = '.*\.parquet$'
+ )
+ ------------------------------------

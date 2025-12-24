@@ -5,12 +5,13 @@ import io.trino.filesystem.TrinoFileSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
 public class XFileTrinoFileSystemUtils {
 
-    public static InputStream readInputStream(TrinoFileSystem trinoFileSystem, String location) {
+    public static InputStream readInputStream(TrinoFileSystem trinoFileSystem, String location, Map<String, Object> props) {
         try {
             InputStream is = trinoFileSystem.newInputFile(Location.of(location)).newStream();
             if (location.endsWith(".gz")) {

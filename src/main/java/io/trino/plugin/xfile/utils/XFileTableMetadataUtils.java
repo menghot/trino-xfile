@@ -21,27 +21,30 @@ import org.apache.parquet.schema.MessageType;
 
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
 
 public class XFileTableMetadataUtils {
 
-    public static ConnectorTableMetadata readTableMetadataFromFile(TrinoFileSystem trinoFileSystem, SchemaTableName schemaTableName, String format) {
-        if ("parquet".equals(format)) {
-            return XFileTableMetadataUtils.getParquetConnectorTableMetadata(trinoFileSystem, schemaTableName);
-        } else if("csv".equals(format)) {
-            return XFileTableMetadataUtils.getCsvConnectorTableMetadata(trinoFileSystem, schemaTableName);
+    public static ConnectorTableMetadata readTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName schemaTableName, String format, Map<String, Object> tableProps) {
+        if ("parquet".equalsIgnoreCase(format)) {
+            return XFileTableMetadataUtils.getParquetTableMetadata(trinoFileSystem, schemaTableName);
+        } else if ("csv".equalsIgnoreCase(format)) {
+            return XFileTableMetadataUtils.getCsvTableMetadata(trinoFileSystem, schemaTableName, null);
+        } else if ("json".equalsIgnoreCase(format)) {
+            return XFileTableMetadataUtils.getJsonTableMetadata(trinoFileSystem, schemaTableName);
         }
 
-        // support more file types,e.g. json, excel...
+        // support more file types,e.g, excel, xml ...
         return null;
     }
 
 
-    public static ConnectorTableMetadata getCsvConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
+    public static ConnectorTableMetadata getCsvTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName, Map<String, Object> tableProps) {
         ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
-        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName())));
+        CSVReader csvReader = new CSVReader(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName(), tableProps)));
         Iterator<String[]> lineIterator = csvReader.iterator();
         if (lineIterator.hasNext()) {
             String[] fields = lineIterator.next();
@@ -54,6 +57,15 @@ public class XFileTableMetadataUtils {
 
         return new ConnectorTableMetadata(tableName, listBuilder.build());
     }
+
+
+    public static ConnectorTableMetadata getJsonTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
+        ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
+        listBuilder.add(new ColumnMetadata("json_text", VarcharType.createUnboundedVarcharType()));
+        // Store entire json to a column
+        return new ConnectorTableMetadata(tableName, listBuilder.build());
+    }
+
 
     public static void configHiddenColumns(ImmutableList.Builder<ColumnMetadata> listBuilder) {
         // __file_path__
@@ -72,7 +84,7 @@ public class XFileTableMetadataUtils {
     }
 
 
-    public static ConnectorTableMetadata getParquetConnectorTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
+    public static ConnectorTableMetadata getParquetTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
 
         TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.getTableName()));
         try {

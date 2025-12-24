@@ -16,14 +16,12 @@ package io.trino.plugin.xfile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import io.airlift.slice.Slice;
 import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,16 +84,19 @@ public class XFileMetadata
     @Override
     public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
 
+        // Table create by SQL DDL
         XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
         if (table != null) {
             return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
         }
 
+        //  Schema invalid
         XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, tableName.getSchemaName());
         if (xFileSchema == null) {
             return null;
         }
 
+        //  Table auto discovery
         if (xFileSchema.getProperties().containsKey(XFileConnector.FILE_LOCATION)) {
             String filterRegx = xFileSchema.getProperties()
                     .getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
@@ -113,15 +114,15 @@ public class XFileMetadata
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
         XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table != null) {
-            ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
+            ImmutableList.Builder<ColumnMetadata> columnMetadataBuilder = ImmutableList.builder();
             for (XFileColumn column : table.getColumns()) {
-                listBuilder.add(new ColumnMetadata(column.name(), column.type()));
+                columnMetadataBuilder.add(new ColumnMetadata(column.name(), column.type()));
             }
 
-            //Set hidden columns  __file_path__, __row_num__ ...
-            XFileTableMetadataUtils.configHiddenColumns(listBuilder);
+            //Set hidden columns  __file_path__, __row_num__ (json not support)
+            XFileTableMetadataUtils.configHiddenColumns(columnMetadataBuilder);
 
-            return new ConnectorTableMetadata(schemaTableName, listBuilder.build(), table.getProperties());
+            return new ConnectorTableMetadata(schemaTableName, columnMetadataBuilder.build(), table.getProperties());
         } else {
             XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getSchemaName());
             if (xFileSchema == null) {
@@ -133,10 +134,12 @@ public class XFileMetadata
                 predicateFormat = "parquet";
             }  else if (schemaTableName.getTableName().matches(XFileConnector.FILE_TABLE_CSV_REGEX)) {
                 predicateFormat = "csv";
+            } else if (schemaTableName.getTableName().endsWith(".json")) {
+                predicateFormat = "json";
             }
             String format = xFileSchema.getProperties().getOrDefault(XFileConnector.FILE_FORMAT, predicateFormat).toString();
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
-            return XFileTableMetadataUtils.readTableMetadataFromFile(trinoFileSystem, schemaTableName, format);
+            return XFileTableMetadataUtils.readTableMetadata(trinoFileSystem, schemaTableName, format, xFileSchema.getProperties());
         }
     }
 

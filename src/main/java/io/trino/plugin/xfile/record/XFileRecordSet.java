@@ -16,6 +16,7 @@ package io.trino.plugin.xfile.record;
 import com.google.common.collect.ImmutableList;
 import io.trino.filesystem.TrinoFileSystem;
 import io.trino.plugin.xfile.XFileColumnHandle;
+import io.trino.plugin.xfile.XFileConnector;
 import io.trino.plugin.xfile.XFileSplit;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.connector.RecordSet;
@@ -51,6 +52,13 @@ public class XFileRecordSet
 
     @Override
     public RecordCursor cursor() {
+        // Support JSON, Excel row-based cursor,
+        // (Parquet or ORC are column-based)
+
+        if (split.uri().endsWith(".json") || "json".equals(split.properties().get(XFileConnector.FILE_FORMAT))) {
+            return new XFileJsonRecordCursor(columnHandles, split, trinoFileSystem);
+        }
+
         return new XFileCsvRecordCursor(columnHandles, split, trinoFileSystem);
     }
 }

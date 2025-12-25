@@ -151,7 +151,7 @@
           }
         },
         {
-          "name": "s3://metastore/example-parquet2/all_types.parquet",
+          "name": "s3://metastore/example-parquet2#2",
           "columns": [
             {
               "name": "int_col",
@@ -186,7 +186,51 @@
               "type": "array(row(\"element\" bigint))"
             }
           ],
-          "properties": {}
+          "properties": {
+            "file-filter-regex": ".*\\.parquet",
+            "format": "parquet"
+          }
+        },
+        {
+          "name": "s3://metastore/example-parquet2#1",
+          "columns": [
+            {
+              "name": "int_col",
+              "type": "bigint"
+            },
+            {
+              "name": "float_col",
+              "type": "double"
+            },
+            {
+              "name": "bool_col",
+              "type": "boolean"
+            },
+            {
+              "name": "str_col",
+              "type": "varchar"
+            },
+            {
+              "name": "dt_col",
+              "type": "timestamp(6)"
+            },
+            {
+              "name": "date_col",
+              "type": "timestamp(6)"
+            },
+            {
+              "name": "decimal_col",
+              "type": "decimal(4,2)"
+            },
+            {
+              "name": "list_col",
+              "type": "array(row(\"element\" bigint))"
+            }
+          ],
+          "properties": {
+            "file-filter-regex": ".*\\.parquet",
+            "format": "parquet"
+          }
         }
       ]
     },

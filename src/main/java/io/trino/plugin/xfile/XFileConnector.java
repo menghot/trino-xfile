@@ -34,9 +34,10 @@ public class XFileConnector implements Connector {
     public static final String FILE_TABLE_CSV_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|csv\\.zip)$";
 
     public static final String TABLE_PROP_FILE_COMPRESSION_FORMAT = "file-compression-format";
-    public static final String TABLE_PROP_FILE_FILTER_REGX = "file-filter-regx";
+    public static final String TABLE_PROP_FILE_FILTER_REGEX = "file-filter-regex";
     public static final String TABLE_PROP_FILE_LOCATION = "location";
     public static final String TABLE_PROP_FILE_FORMAT = "format";
+
     public static final String TABLE_PROP_CSV_SKIP_FIRST_LINES = "csv-skip-first-lines";
     public static final String TABLE_PROP_CSV_SKIP_LAST_LINES = "csv-skip-last-lines";
     public static final String TABLE_PROP_CSV_SEPARATOR = "csv-separator";
@@ -113,7 +114,7 @@ public class XFileConnector implements Connector {
                         null,
                         false),
                 stringProperty(
-                        TABLE_PROP_FILE_FILTER_REGX,
+                        TABLE_PROP_FILE_FILTER_REGEX,
                         "file filter regx",
                         null,
                         false)

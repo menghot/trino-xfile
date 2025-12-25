@@ -19,7 +19,7 @@
           ],
           "properties": {
             "csv-skip-first-lines": 1,
-            "file-filter-regx": ".*\\.dat",
+            "file-filter-regex": ".*\\.dat",
             "format": "csv"
           }
         },
@@ -37,7 +37,7 @@
           ],
           "properties": {
             "csv-skip-first-lines": 1,
-            "file-filter-regx": ".*\\.(csv|csv\\.gz|csv\\.zip)$",
+            "file-filter-regex": ".*\\.(csv|csv\\.gz|csv\\.zip)$",
             "format": "csv"
           }
         },
@@ -55,7 +55,7 @@
           ],
           "properties": {
             "csv-skip-first-lines": 1,
-            "file-filter-regx": ".*\\.(csv|csv\\.gz|csv\\.zip)$",
+            "file-filter-regex": ".*\\.(csv|csv\\.gz|csv\\.zip)$",
             "format": "csv"
           }
         },
@@ -146,7 +146,7 @@
             }
           ],
           "properties": {
-            "file-filter-regx": ".*\\.parquet$",
+            "file-filter-regex": ".*\\.parquet$",
             "format": "parquet"
           }
         },
@@ -208,14 +208,14 @@
       "name": "s4",
       "properties": {
         "location": "s3://metastore/example-parquet",
-        "file-filter-regx": ".*\\.parquet$"
+        "file-filter-regex": ".*\\.parquet$"
       },
       "tables": []
     },
     {
       "name": "s5",
       "properties": {
-        "file-filter-regx": ".*\\.parquet$",
+        "file-filter-regex": ".*\\.parquet$",
         "location": "s3://metastore/example-parquet2"
       },
       "tables": []

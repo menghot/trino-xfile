@@ -114,9 +114,9 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
                         + XFileConnector.TABLE_PROP_FILE_FORMAT + "' for table: " + tableMetadata.getTable().getTableName());
             }
 
-            if (!tableMetadata.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_FILTER_REGX)) {
+            if (!tableMetadata.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_FILTER_REGEX)) {
                 throw new TrinoException(StandardErrorCode.INVALID_TABLE_PROPERTY, "Table property must contain: '"
-                        + XFileConnector.TABLE_PROP_FILE_FILTER_REGX + "' for table: " + tableMetadata.getTable().getTableName());
+                        + XFileConnector.TABLE_PROP_FILE_FILTER_REGEX + "' for table: " + tableMetadata.getTable().getTableName());
             }
         }
 

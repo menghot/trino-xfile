@@ -70,7 +70,7 @@ public class XFileSplitManager
         } else {
 
             String fileFilterRegx = table.getProperties()
-                    .getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGX, XFileConnector.FILE_FILTER_REGEX).toString();
+                    .getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGEX, XFileConnector.FILE_FILTER_REGEX).toString();
             if (table.getName().matches(fileFilterRegx)) {
                 // If table name has extension. e.g. .csv .parquet,  it is a single file table
                 splits.add(new XFileSplit(table.getName(), table.getProperties()));

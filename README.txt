@@ -3,7 +3,8 @@ Table properties:
 
 location :
 format :
-csv-skip-rows :
+csv-skip-first-lines :
+csv-skip-last-lines :
 csv-delimiter :
 file-filter-regx :
 file-compression-format :
@@ -31,7 +32,7 @@ CREATE TABLE xfile.s2."s3://metastore/example-dat" (
     name varchar
 )
 WITH (
-    "csv-skip-rows" = 1,
+    "csv-skip-first-lines" = 1,
     "file-filter-regx" = '.*\.dat',
     format = 'csv'
 )
@@ -49,7 +50,7 @@ CREATE TABLE xfile.s2."s3://metastore/example-csv" (
     name varchar
 )
 WITH (
-    "csv-skip-rows" = 1,
+    "csv-skip-first-lines" = 1,
     "file-filter-regx" = '.*\.(csv|csv\.gz|csv\.zip)$',
     format = 'csv'
 )

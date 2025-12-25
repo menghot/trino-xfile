@@ -33,12 +33,13 @@ public class XFileConnector implements Connector {
     public static final String FILE_FILTER_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|json|csv\\.zip|parquet)$";
     public static final String FILE_TABLE_CSV_REGEX = "^(local|s3)://.*\\.(csv|csv\\.gz|csv\\.zip)$";
 
-    public static final String FILE_COMPRESSION_FORMAT_PROPERTY = "file-compression-format";
-    public static final String FILE_FILTER_REGX_PROPERTY = "file-filter-regx";
-    public static final String FILE_LOCATION = "location";
-    public static final String FILE_FORMAT = "format";
-    public static final String CSV_SKIP_ROWS_PROPERTY = "csv-skip-rows";
-    public static final String CSV_DELIMITER_PROPERTY = "csv-delimiter";
+    public static final String TABLE_PROP_FILE_COMPRESSION_FORMAT = "file-compression-format";
+    public static final String TABLE_PROP_FILE_FILTER_REGX = "file-filter-regx";
+    public static final String TABLE_PROP_FILE_LOCATION = "location";
+    public static final String TABLE_PROP_FILE_FORMAT = "format";
+    public static final String TABLE_PROP_CSV_SKIP_FIRST_LINES = "csv-skip-first-lines";
+    public static final String TABLE_PROP_CSV_SKIP_LAST_LINES = "csv-skip-last-lines";
+    public static final String TABLE_PROP_CSV_SEPARATOR = "csv-separator";
 
     private final LifeCycleManager lifeCycleManager;
     private final XFileMetadata metadata;
@@ -92,27 +93,27 @@ public class XFileConnector implements Connector {
     public List<PropertyMetadata<?>> getTableProperties() {
         return ImmutableList.of(
                 stringProperty(
-                        FILE_FORMAT,
+                        TABLE_PROP_FILE_FORMAT,
                         "file format, csv|csv.gz|parquet|json|xls|xlsx",
                         null,
                         false),
                 integerProperty(
-                        CSV_SKIP_ROWS_PROPERTY,
+                        TABLE_PROP_CSV_SKIP_FIRST_LINES,
                         "csv skip lines",
                         null,
                         false),
                 stringProperty(
-                        CSV_DELIMITER_PROPERTY,
+                        TABLE_PROP_CSV_SEPARATOR,
                         "csv delimiter",
                         null,
                         false),
                 stringProperty(
-                        FILE_COMPRESSION_FORMAT_PROPERTY,
+                        TABLE_PROP_FILE_COMPRESSION_FORMAT,
                         "file compression format,  zip or gzip",
                         null,
                         false),
                 stringProperty(
-                        FILE_FILTER_REGX_PROPERTY,
+                        TABLE_PROP_FILE_FILTER_REGX,
                         "file filter regx",
                         null,
                         false)
@@ -123,7 +124,7 @@ public class XFileConnector implements Connector {
     public List<PropertyMetadata<?>> getSchemaProperties() {
         List<PropertyMetadata<?>> list = new ArrayList<>(getTableProperties());
         list.add(stringProperty(
-                FILE_LOCATION,
+                TABLE_PROP_FILE_LOCATION,
                 "Schema location",
                 null,
                 false));

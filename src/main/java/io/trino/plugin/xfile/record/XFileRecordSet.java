@@ -55,7 +55,7 @@ public class XFileRecordSet
         // Support JSON, Excel row-based cursor,
         // (Parquet or ORC are column-based)
 
-        if (split.uri().endsWith(".json") || "json".equals(split.properties().get(XFileConnector.FILE_FORMAT))) {
+        if (split.uri().endsWith(".json") || "json".equals(split.properties().get(XFileConnector.TABLE_PROP_FILE_FORMAT))) {
             return new XFileJsonRecordCursor(columnHandles, split, trinoFileSystem);
         }
 

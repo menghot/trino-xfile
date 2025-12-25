@@ -78,7 +78,7 @@ public class XFilePageSourceProvider
         XFileTableHandle tableHandle = (XFileTableHandle) table;
 
         // 1. Parquet
-        if ("parquet".equals(xFileSplit.properties().get(XFileConnector.FILE_FORMAT)) ||
+        if ("parquet".equals(xFileSplit.properties().get(XFileConnector.TABLE_PROP_FILE_FORMAT)) ||
                 xFileSplit.uri().endsWith(".parquet")) {
             TrinoInputFile trinoInputFile = trinoFileSystemFactory.create(session).newInputFile(Location.of(xFileSplit.uri()));
             try {
@@ -87,7 +87,7 @@ public class XFilePageSourceProvider
                 throw new RuntimeException(e);
             }
         } else if (
-                "csv".equals(xFileSplit.properties().get(XFileConnector.FILE_FORMAT)) ||
+                "csv".equals(xFileSplit.properties().get(XFileConnector.TABLE_PROP_FILE_FORMAT)) ||
                         xFileSplit.uri().matches(XFileConnector.FILE_TABLE_CSV_REGEX) ||
                         xFileSplit.uri().endsWith(".json")) {
             return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, xFileSplit, tableHandle, columns));

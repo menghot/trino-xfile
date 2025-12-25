@@ -103,8 +103,21 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
         List<XFileColumn> columns = tableMetadata.getColumns().stream().map(
                 c -> new XFileColumn(c.getName(), c.getType())).toList();
 
-        if (xFileSchema.getProperties().containsKey(XFileConnector.FILE_LOCATION)) {
+        if (xFileSchema.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_LOCATION)) {
             throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().getSchemaName());
+        }
+
+
+        if(!tableMetadata.getTable().getTableName().matches(XFileConnector.FILE_FILTER_REGEX)) {
+            if (!tableMetadata.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_FORMAT)) {
+                throw new TrinoException(StandardErrorCode.INVALID_TABLE_PROPERTY, "Table property must contain: '"
+                        + XFileConnector.TABLE_PROP_FILE_FORMAT + "' for table: " + tableMetadata.getTable().getTableName());
+            }
+
+            if (!tableMetadata.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_FILTER_REGX)) {
+                throw new TrinoException(StandardErrorCode.INVALID_TABLE_PROPERTY, "Table property must contain: '"
+                        + XFileConnector.TABLE_PROP_FILE_FILTER_REGX + "' for table: " + tableMetadata.getTable().getTableName());
+            }
         }
 
         xFileSchema.getTables().add(

@@ -53,13 +53,23 @@ public class XFileCsvRecordCursor implements RecordCursor {
     // Store field values for CSV row
     private String[] fields;
     private long currentRowNum = 0;
+    private int skipLastLines = 0;
 
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
         this.xFileSplit  = xFileSplit;
         InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
         countingInputStream = new CountingInputStream(is);
-        char separator =  xFileSplit.properties().getOrDefault(XFileConnector.CSV_DELIMITER_PROPERTY, ICSVParser.DEFAULT_SEPARATOR ).toString().charAt(0);
+
+        char separator = ',';
+        if (xFileSplit.properties().containsKey(XFileConnector.TABLE_PROP_CSV_SEPARATOR)) {
+            if(xFileSplit.properties().get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().startsWith("\\")) {
+                separator = (char) Integer.parseInt(xFileSplit.properties().get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().substring(2), 16);
+            } else {
+                separator =  xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SEPARATOR, ICSVParser.DEFAULT_SEPARATOR ).toString().charAt(0);
+            }
+        }
+
         CSVParser parser = new CSVParserBuilder()
             .withSeparator(separator)
             .withQuoteChar(ICSVParser.DEFAULT_QUOTE_CHARACTER)
@@ -76,11 +86,16 @@ public class XFileCsvRecordCursor implements RecordCursor {
             .build();
 
         lineIterator = csvReader.iterator();
-        int skipRows = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.CSV_SKIP_ROWS_PROPERTY, "0").toString()) ;
+        int skipRows = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_FIRST_LINES, "0").toString()) ;
         while (lineIterator.hasNext() && skipRows > 0) {
             lineIterator.next();
             skipRows--;
             currentRowNum ++;
+        }
+
+        skipLastLines = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_LAST_LINES, "0").toString());
+        if(skipLastLines > 0) {
+            throw new UnsupportedOperationException("CSV skip last lines > 1 are not supported");
         }
     }
 
@@ -105,7 +120,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
         if (lineIterator.hasNext()) {
             fields = lineIterator.next();
             currentRowNum ++;
-            return true;
+            return skipLastLines !=1 || lineIterator.hasNext();
         }
         return false;
     }

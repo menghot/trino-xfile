@@ -18,7 +18,7 @@
             }
           ],
           "properties": {
-            "csv-skip-rows": 1,
+            "csv-skip-first-lines": 1,
             "file-filter-regx": ".*\\.dat",
             "format": "csv"
           }
@@ -36,7 +36,7 @@
             }
           ],
           "properties": {
-            "csv-skip-rows": 1,
+            "csv-skip-first-lines": 1,
             "file-filter-regx": ".*\\.(csv|csv\\.gz|csv\\.zip)$",
             "format": "csv"
           }
@@ -54,7 +54,7 @@
             }
           ],
           "properties": {
-            "csv-skip-rows": 1,
+            "csv-skip-first-lines": 1,
             "file-filter-regx": ".*\\.(csv|csv\\.gz|csv\\.zip)$",
             "format": "csv"
           }

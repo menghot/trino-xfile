@@ -54,7 +54,7 @@ public class XFileMetadata
         }
 
         XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, optionalSchemaName.get());
-        Object location = xFileSchema.getProperties().get(XFileConnector.FILE_LOCATION);
+        Object location = xFileSchema.getProperties().get(XFileConnector.TABLE_PROP_FILE_LOCATION);
         if (location != null) {
             // List files as tables if schema has "location" configuration
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
@@ -62,7 +62,7 @@ public class XFileMetadata
                 FileIterator fileIterator = trinoFileSystem.listFiles(Location.of(location.toString()));
                 while (fileIterator.hasNext()) {
                     FileEntry fileEntry = fileIterator.next();
-                    String fileFilterRegx = xFileSchema.getProperties().getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
+                    String fileFilterRegx = xFileSchema.getProperties().getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGX, XFileConnector.FILE_FILTER_REGEX).toString();
                     if (fileEntry.location().toString().matches(fileFilterRegx)) {
                         builder.add(new SchemaTableName(optionalSchemaName.get(), fileEntry.location().toString()));
                     }
@@ -97,9 +97,9 @@ public class XFileMetadata
         }
 
         //  Table auto discovery
-        if (xFileSchema.getProperties().containsKey(XFileConnector.FILE_LOCATION)) {
+        if (xFileSchema.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_LOCATION)) {
             String filterRegx = xFileSchema.getProperties()
-                    .getOrDefault(XFileConnector.FILE_FILTER_REGX_PROPERTY, XFileConnector.FILE_FILTER_REGEX).toString();
+                    .getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGX, XFileConnector.FILE_FILTER_REGEX).toString();
             if (tableName.getTableName().matches(filterRegx)) {
                 return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
             }
@@ -137,7 +137,7 @@ public class XFileMetadata
             } else if (schemaTableName.getTableName().endsWith(".json")) {
                 predicateFormat = "json";
             }
-            String format = xFileSchema.getProperties().getOrDefault(XFileConnector.FILE_FORMAT, predicateFormat).toString();
+            String format = xFileSchema.getProperties().getOrDefault(XFileConnector.TABLE_PROP_FILE_FORMAT, predicateFormat).toString();
             TrinoFileSystem trinoFileSystem = trinoFileSystemFactory.create(session);
             return XFileTableMetadataUtils.readTableMetadata(trinoFileSystem, schemaTableName, format, xFileSchema.getProperties());
         }

@@ -94,7 +94,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
         }
 
         skipLastLines = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_LAST_LINES, "0").toString());
-        if(skipLastLines > 0) {
+        if(skipLastLines > 1) {
             throw new UnsupportedOperationException("CSV skip last lines > 1 are not supported");
         }
     }

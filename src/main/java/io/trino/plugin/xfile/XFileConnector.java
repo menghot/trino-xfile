@@ -142,7 +142,7 @@ public class XFileConnector implements Connector {
                         false),
                 integerProperty(
                         TABLE_PROP_CSV_SKIP_LAST_LINES,
-                        "csv skip lines",
+                        "csv skip last lines",
                         null,
                         false),
                 stringProperty(

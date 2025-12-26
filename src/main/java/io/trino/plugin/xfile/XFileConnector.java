@@ -135,6 +135,11 @@ public class XFileConnector implements Connector {
                         "Schema location",
                         null,
                         false),
+                stringProperty(
+                        TABLE_PROP_FILE_FORMAT,
+                        "file format, csv|csv.gz|parquet|json|xls|xlsx",
+                        null,
+                        false),
                 integerProperty(
                         TABLE_PROP_CSV_SKIP_FIRST_LINES,
                         "csv skip first lines",

@@ -83,7 +83,7 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
         requireNonNull(tableName, "tableName is null");
         Optional<XFileSchema> xFileSchema = getSchemas(session).stream().filter(s -> s.getName().equals(schema)).findFirst();
         if (xFileSchema.isPresent() && xFileSchema.get().getTables() != null) {
-            return xFileSchema.get().getTables().stream().filter(t -> t.getName().equals(tableName)).findFirst().orElse(null);
+            return xFileSchema.get().getTables().stream().filter(t -> t.name().equals(tableName)).findFirst().orElse(null);
         }
         return null;
     }
@@ -99,30 +99,30 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
     @Override
     public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
         getXFileCatalog(session);
-        XFileSchema xFileSchema = getSchema(session, tableMetadata.getTable().getSchemaName());
+        XFileSchema xFileSchema = getSchema(session, tableMetadata.getTable().schemaName());
         List<XFileColumn> columns = tableMetadata.getColumns().stream().map(
                 c -> new XFileColumn(c.getName(), c.getType())).toList();
 
         if (xFileSchema.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_LOCATION)) {
-            throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().getSchemaName());
+            throw new TrinoException(StandardErrorCode.NOT_SUPPORTED, "The schema is used for auto discovery, Can't create table in schema: " + tableMetadata.getTable().schemaName());
         }
 
 
-        if(!tableMetadata.getTable().getTableName().matches(XFileConnector.FILE_FILTER_REGEX)) {
+        if(!tableMetadata.getTable().tableName().matches(XFileConnector.FILE_FILTER_REGEX)) {
             if (!tableMetadata.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_FORMAT)) {
                 throw new TrinoException(StandardErrorCode.INVALID_TABLE_PROPERTY, "Table property must contain: '"
-                        + XFileConnector.TABLE_PROP_FILE_FORMAT + "' for table: " + tableMetadata.getTable().getTableName());
+                        + XFileConnector.TABLE_PROP_FILE_FORMAT + "' for table: " + tableMetadata.getTable().tableName());
             }
 
             if (!tableMetadata.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_FILTER_REGEX)) {
                 throw new TrinoException(StandardErrorCode.INVALID_TABLE_PROPERTY, "Table property must contain: '"
-                        + XFileConnector.TABLE_PROP_FILE_FILTER_REGEX + "' for table: " + tableMetadata.getTable().getTableName());
+                        + XFileConnector.TABLE_PROP_FILE_FILTER_REGEX + "' for table: " + tableMetadata.getTable().tableName());
             }
         }
 
         xFileSchema.getTables().add(
                 new XFileTable(
-                        tableMetadata.getTable().getTableName(),
+                        tableMetadata.getTable().tableName(),
                         columns,
                         tableMetadata.getProperties())
         );
@@ -156,7 +156,7 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
         XFileSchema xFileSchema = getSchema(session, schemaName);
         xFileSchema.setTables(
                 xFileSchema.getTables().stream().filter(
-                        t -> !t.getName().equals(tableName)).toList());
+                        t -> !t.name().equals(tableName)).toList());
         saveCatalog(session, xFileCatalog);
     }
 

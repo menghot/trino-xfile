@@ -69,7 +69,7 @@ public class XFileTableMetadataUtils {
                 .build();
 
         try (
-                CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName(), tableProps)))
+                CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.tableName(), tableProps)))
                         .withCSVParser(parser).build()) {
 
             Iterator<String[]> lineIterator = csvReader.iterator();
@@ -123,7 +123,7 @@ public class XFileTableMetadataUtils {
 
     public static ConnectorTableMetadata getParquetTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName) {
 
-        TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.getTableName()));
+        TrinoInputFile trinoInputFile = trinoFileSystem.newInputFile(Location.of(tableName.tableName()));
         try {
             ParquetDataSource dataSource = new ParquetFileDataSource(trinoInputFile);
             ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource, Optional.empty());

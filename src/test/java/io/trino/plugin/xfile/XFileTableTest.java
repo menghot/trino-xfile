@@ -14,7 +14,6 @@
 package io.trino.plugin.xfile;
 
 import com.google.common.collect.ImmutableList;
-import io.trino.spi.connector.ColumnMetadata;
 import org.junit.jupiter.api.Test;
 
 import static io.trino.plugin.xfile.XFileMetadataUtil.TABLE_CODEC;
@@ -39,7 +38,7 @@ public class XFileTableTest {
         String json = TABLE_CODEC.toJson(XFileTable);
         XFileTable XFileTableCopy = TABLE_CODEC.fromJson(json);
 
-        assertThat(XFileTableCopy.getName()).isEqualTo(XFileTable.getName());
-        assertThat(XFileTableCopy.getColumns()).isEqualTo(XFileTable.getColumns());
+        assertThat(XFileTableCopy.name()).isEqualTo(XFileTable.name());
+        assertThat(XFileTableCopy.columns()).isEqualTo(XFileTable.columns());
     }
 }

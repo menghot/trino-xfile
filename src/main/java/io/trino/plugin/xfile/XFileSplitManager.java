@@ -65,18 +65,18 @@ public class XFileSplitManager
         if (table == null) {
             // The table is auto discovery with schema
             SchemaTableName schemaTableName = tableHandle.getSchemaTableName();
-            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getSchemaName());
-            splits.add(new XFileSplit(schemaTableName.getTableName(), xFileSchema.getProperties()));
+            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.schemaName());
+            splits.add(new XFileSplit(schemaTableName.tableName(), xFileSchema.getProperties()));
         } else {
 
-            String fileFilterRegx = table.getProperties()
+            String fileFilterRegx = table.properties()
                     .getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGEX, XFileConnector.FILE_FILTER_REGEX).toString();
-            if (table.getName().matches(fileFilterRegx)) {
+            if (table.name().matches(fileFilterRegx)) {
                 // If table name has extension. e.g. .csv .parquet,  it is a single file table
-                splits.add(new XFileSplit(table.getName(), table.getProperties()));
+                splits.add(new XFileSplit(table.name(), table.properties()));
             } else {
                 // Folder as table, e.g. s3://metastore/example-csv
-                FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());
+                FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.name());
                 try {
                     while (fileIterator.hasNext()) {
                         FileEntry entry = fileIterator.next();
@@ -85,10 +85,10 @@ public class XFileSplitManager
                                 // Implement predicate pushdown, which allows the connector to skip reading unnecessary data files
                                 Map<ColumnHandle, NullableValue> files = Map.of(xFileColumnHandle.get(), new NullableValue(VarcharType.VARCHAR, utf8Slice(entry.location().toString())));
                                 if (constraint.predicate().get().test(files) ) {
-                                    splits.add(new XFileSplit(entry.location().toString(), table.getProperties()));
+                                    splits.add(new XFileSplit(entry.location().toString(), table.properties()));
                                 }
                             } else{
-                                splits.add(new XFileSplit(entry.location().toString(), table.getProperties()));
+                                splits.add(new XFileSplit(entry.location().toString(), table.properties()));
                             }
                         }
                     }

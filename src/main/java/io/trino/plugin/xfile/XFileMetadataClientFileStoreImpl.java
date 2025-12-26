@@ -42,8 +42,6 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
     private volatile long catalogCacheTimeMills = 0;
     private static final long CATALOG_CACHE_TTL_MILLIS = 5000;
 
-    @Inject
-
     @Override
     public XFileCatalog getXFileCatalog(ConnectorSession session) {
         long now = System.currentTimeMillis();

@@ -73,7 +73,7 @@ public class XFileMetadata
             }
         } else {
             xFileSchema.getTables().forEach(table -> {
-                builder.add(new SchemaTableName(optionalSchemaName.get(), table.name()));
+                builder.add(new SchemaTableName(optionalSchemaName.get(), table.getName()));
             });
         }
 
@@ -85,13 +85,13 @@ public class XFileMetadata
     public XFileTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName, Optional<ConnectorTableVersion> startVersion, Optional<ConnectorTableVersion> endVersion) {
 
         // Table create by SQL DDL
-        XFileTable table = xFileMetadataClient.getTable(session, tableName.schemaName(), tableName.tableName());
+        XFileTable table = xFileMetadataClient.getTable(session, tableName.getSchemaName(), tableName.getTableName());
         if (table != null) {
-            return new XFileTableHandle(tableName.schemaName(), tableName.tableName());
+            return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
         }
 
         //  Schema invalid
-        XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, tableName.schemaName());
+        XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, tableName.getSchemaName());
         if (xFileSchema == null) {
             return null;
         }
@@ -100,8 +100,8 @@ public class XFileMetadata
         if (xFileSchema.getProperties().containsKey(XFileConnector.TABLE_PROP_FILE_LOCATION)) {
             String filterRegx = xFileSchema.getProperties()
                     .getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGEX, XFileConnector.FILE_FILTER_REGEX).toString();
-            if (tableName.tableName().matches(filterRegx)) {
-                return new XFileTableHandle(tableName.schemaName(), tableName.tableName());
+            if (tableName.getTableName().matches(filterRegx)) {
+                return new XFileTableHandle(tableName.getSchemaName(), tableName.getTableName());
             }
         }
 
@@ -112,29 +112,29 @@ public class XFileMetadata
     @Override
     public ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle) {
         SchemaTableName schemaTableName = ((XFileTableHandle) tableHandle).getSchemaTableName();
-        XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.schemaName(), schemaTableName.tableName());
+        XFileTable table = xFileMetadataClient.getTable(session, schemaTableName.getSchemaName(), schemaTableName.getTableName());
         if (table != null) {
             ImmutableList.Builder<ColumnMetadata> columnMetadataBuilder = ImmutableList.builder();
-            for (XFileColumn column : table.columns()) {
+            for (XFileColumn column : table.getColumns()) {
                 columnMetadataBuilder.add(new ColumnMetadata(column.name(), column.type()));
             }
 
             //Set hidden columns  __file_path__, __row_num__ (json not support)
             XFileTableMetadataUtils.configHiddenColumns(columnMetadataBuilder);
 
-            return new ConnectorTableMetadata(schemaTableName, columnMetadataBuilder.build(), table.properties());
+            return new ConnectorTableMetadata(schemaTableName, columnMetadataBuilder.build(), table.getProperties());
         } else {
-            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.schemaName());
+            XFileSchema xFileSchema = xFileMetadataClient.getSchema(session, schemaTableName.getSchemaName());
             if (xFileSchema == null) {
                 return null;
             }
 
             String predicateFormat = "";
-            if (schemaTableName.tableName().endsWith(".parquet")) {
+            if (schemaTableName.getTableName().endsWith(".parquet")) {
                 predicateFormat = "parquet";
-            }  else if (schemaTableName.tableName().matches(XFileConnector.FILE_TABLE_CSV_REGEX)) {
+            }  else if (schemaTableName.getTableName().matches(XFileConnector.FILE_TABLE_CSV_REGEX)) {
                 predicateFormat = "csv";
-            } else if (schemaTableName.tableName().endsWith(".json")) {
+            } else if (schemaTableName.getTableName().endsWith(".json")) {
                 predicateFormat = "json";
             }
             String format = xFileSchema.getProperties().getOrDefault(XFileConnector.TABLE_PROP_FILE_FORMAT, predicateFormat).toString();

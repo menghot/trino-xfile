@@ -16,6 +16,9 @@ package io.trino.plugin.xfile;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
+import io.trino.spi.connector.ColumnMetadata;
+import io.trino.spi.type.BigintType;
+import io.trino.spi.type.VarcharType;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +27,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
 
-public record XFileTable(String name, List<XFileColumn> columns, Map<String, Object> properties) {
+public class XFileTable {
+    private final String name;
+    private final List<XFileColumn> columns;
+    private final Map<String, Object> properties;
+
     @JsonCreator
     public XFileTable(
             @JsonProperty("name") String name,
@@ -36,21 +43,18 @@ public record XFileTable(String name, List<XFileColumn> columns, Map<String, Obj
         this.columns = ImmutableList.copyOf(requireNonNull(columns, "columns is null"));
     }
 
-    @Override
     @JsonProperty
-    public String name() {
+    public String getName() {
         return name;
     }
 
-    @Override
     @JsonProperty
-    public List<XFileColumn> columns() {
+    public List<XFileColumn> getColumns() {
         return columns;
     }
 
-    @Override
     @JsonProperty
-    public Map<String, Object> properties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 }

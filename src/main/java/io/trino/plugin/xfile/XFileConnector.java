@@ -103,6 +103,11 @@ public class XFileConnector implements Connector {
                         "csv skip lines",
                         null,
                         false),
+                integerProperty(
+                        TABLE_PROP_CSV_SKIP_LAST_LINES,
+                        "csv skip lines",
+                        null,
+                        false),
                 stringProperty(
                         TABLE_PROP_CSV_SEPARATOR,
                         "csv delimiter",
@@ -123,12 +128,33 @@ public class XFileConnector implements Connector {
 
     @Override
     public List<PropertyMetadata<?>> getSchemaProperties() {
-        List<PropertyMetadata<?>> list = new ArrayList<>(getTableProperties());
-        list.add(stringProperty(
-                TABLE_PROP_FILE_LOCATION,
-                "Schema location",
-                null,
-                false));
-        return list;
+
+        return ImmutableList.of(
+                stringProperty(
+                        TABLE_PROP_FILE_LOCATION,
+                        "Schema location",
+                        null,
+                        false),
+                integerProperty(
+                        TABLE_PROP_CSV_SKIP_FIRST_LINES,
+                        "csv skip first lines",
+                        null,
+                        false),
+                integerProperty(
+                        TABLE_PROP_CSV_SKIP_LAST_LINES,
+                        "csv skip lines",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_CSV_SEPARATOR,
+                        "csv separator",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_FILE_FILTER_REGEX,
+                        "file filter regex",
+                        null,
+                        false)
+        );
     }
 }

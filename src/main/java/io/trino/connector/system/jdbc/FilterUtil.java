@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.trino.connector.system;
+package io.trino.connector.system.jdbc;
 
 import io.airlift.slice.Slice;
 import io.trino.metadata.QualifiedTablePrefix;
@@ -61,7 +61,7 @@ public final class FilterUtil
 //        return candidate.equals("") ||
 //                // TODO (https://github.com/trinodb/trino/issues/17) Currently all object names are lowercase in Trino
 //                !candidate.equals(candidate.toLowerCase(ENGLISH));
-        //XFILE HACKS
-        return candidate.equals("");
+        // XFILE HACKS
+        return candidate.equals("") ;
     }
 }

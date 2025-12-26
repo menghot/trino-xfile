@@ -48,7 +48,7 @@ public class XFileTableMetadataUtils {
     public static ConnectorTableMetadata getCsvTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName, Map<String, Object> tableProps) {
         ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
 
-        char separator = ',';
+        char separator = ICSVParser.DEFAULT_SEPARATOR;
         if (tableProps.containsKey(XFileConnector.TABLE_PROP_CSV_SEPARATOR)) {
             if (tableProps.get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().startsWith("\\")) {
                 separator = (char) Integer.parseInt(tableProps.get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().substring(2), 16);

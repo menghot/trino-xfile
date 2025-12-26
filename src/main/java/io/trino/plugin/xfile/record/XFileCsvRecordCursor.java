@@ -61,7 +61,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
         InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
         countingInputStream = new CountingInputStream(is);
 
-        char separator = ',';
+        char separator = ICSVParser.DEFAULT_SEPARATOR;
         if (xFileSplit.properties().containsKey(XFileConnector.TABLE_PROP_CSV_SEPARATOR)) {
             if(xFileSplit.properties().get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().startsWith("\\")) {
                 separator = (char) Integer.parseInt(xFileSplit.properties().get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().substring(2), 16);

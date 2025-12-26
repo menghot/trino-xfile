@@ -100,12 +100,12 @@ public class XFileConnector implements Connector {
                         false),
                 integerProperty(
                         TABLE_PROP_CSV_SKIP_FIRST_LINES,
-                        "csv skip lines",
+                        "csv skip first lines",
                         null,
                         false),
                 integerProperty(
                         TABLE_PROP_CSV_SKIP_LAST_LINES,
-                        "csv skip lines",
+                        "csv skip last lines",
                         null,
                         false),
                 stringProperty(

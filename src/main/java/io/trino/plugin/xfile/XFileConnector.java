@@ -21,7 +21,6 @@ import io.trino.spi.connector.*;
 import io.trino.spi.session.PropertyMetadata;
 import io.trino.spi.transaction.IsolationLevel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static io.trino.spi.session.PropertyMetadata.integerProperty;

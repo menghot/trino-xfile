@@ -20,7 +20,7 @@ public class CsvUtils {
             }
         }
 
-        CSVParser parser = new CSVParserBuilder()
+        return new CSVParserBuilder()
                 .withSeparator(separator)
                 .withQuoteChar(ICSVParser.DEFAULT_QUOTE_CHARACTER)
                 .withEscapeChar(ICSVParser.DEFAULT_ESCAPE_CHARACTER)
@@ -30,6 +30,5 @@ public class CsvUtils {
                 .withFieldAsNull(ICSVParser.DEFAULT_NULL_FIELD_INDICATOR)
                 .withErrorLocale(Locale.getDefault())
                 .build();
-        return parser;
     }
 }

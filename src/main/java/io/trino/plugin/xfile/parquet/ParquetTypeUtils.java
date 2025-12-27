@@ -29,6 +29,7 @@ public class ParquetTypeUtils {
                 // optional group my_list (LIST) {
                 //     repeated int32 element;
                 // }
+                // https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists
                 org.apache.parquet.schema.Type elementType = groupType.getType(0);
                 if (elementType.isPrimitive()) {
                     return new ArrayType(convertParquetTypeToTrino(elementType));

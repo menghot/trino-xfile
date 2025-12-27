@@ -34,9 +34,11 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static io.trino.plugin.xfile.utils.CsvUtils.getCsvParser;
 import static io.trino.spi.type.BigintType.BIGINT;
 import static io.trino.spi.type.BooleanType.BOOLEAN;
 import static io.trino.spi.type.DoubleType.DOUBLE;
@@ -60,27 +62,7 @@ public class XFileCsvRecordCursor implements RecordCursor {
         this.xFileSplit  = xFileSplit;
         InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
         countingInputStream = new CountingInputStream(is);
-
-        char separator = ICSVParser.DEFAULT_SEPARATOR;
-        if (xFileSplit.properties().containsKey(XFileConnector.TABLE_PROP_CSV_SEPARATOR)) {
-            if(xFileSplit.properties().get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().startsWith("\\")) {
-                separator = (char) Integer.parseInt(xFileSplit.properties().get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().substring(2), 16);
-            } else {
-                separator =  xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SEPARATOR, ICSVParser.DEFAULT_SEPARATOR ).toString().charAt(0);
-            }
-        }
-
-        CSVParser parser = new CSVParserBuilder()
-            .withSeparator(separator)
-            .withQuoteChar(ICSVParser.DEFAULT_QUOTE_CHARACTER)
-            .withEscapeChar(ICSVParser.DEFAULT_ESCAPE_CHARACTER)
-            .withStrictQuotes(ICSVParser.DEFAULT_STRICT_QUOTES)
-            .withIgnoreLeadingWhiteSpace(ICSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE)
-            .withIgnoreQuotations(ICSVParser.DEFAULT_IGNORE_QUOTATIONS)
-            .withFieldAsNull(ICSVParser.DEFAULT_NULL_FIELD_INDICATOR)
-            .withErrorLocale(Locale.getDefault())
-            .build();
-
+        CSVParser parser = getCsvParser(xFileSplit.properties());
         csvReader = new CSVReaderBuilder(new InputStreamReader(countingInputStream))
             .withCSVParser(parser)
             .build();
@@ -98,6 +80,8 @@ public class XFileCsvRecordCursor implements RecordCursor {
             throw new UnsupportedOperationException("CSV skip last lines > 1 are not supported");
         }
     }
+
+
 
     @Override
     public long getCompletedBytes() {

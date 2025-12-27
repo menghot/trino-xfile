@@ -47,29 +47,8 @@ public class XFileTableMetadataUtils {
 
     public static ConnectorTableMetadata getCsvTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName, Map<String, Object> tableProps) {
         ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
-
-        char separator = ICSVParser.DEFAULT_SEPARATOR;
-        if (tableProps.containsKey(XFileConnector.TABLE_PROP_CSV_SEPARATOR)) {
-            if (tableProps.get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().startsWith("\\")) {
-                separator = (char) Integer.parseInt(tableProps.get(XFileConnector.TABLE_PROP_CSV_SEPARATOR).toString().substring(2), 16);
-            } else {
-                separator = tableProps.getOrDefault(XFileConnector.TABLE_PROP_CSV_SEPARATOR, ICSVParser.DEFAULT_SEPARATOR).toString().charAt(0);
-            }
-        }
-
-        CSVParser parser = new CSVParserBuilder()
-                .withSeparator(separator)
-                .withQuoteChar(ICSVParser.DEFAULT_QUOTE_CHARACTER)
-                .withEscapeChar(ICSVParser.DEFAULT_ESCAPE_CHARACTER)
-                .withStrictQuotes(ICSVParser.DEFAULT_STRICT_QUOTES)
-                .withIgnoreLeadingWhiteSpace(ICSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE)
-                .withIgnoreQuotations(ICSVParser.DEFAULT_IGNORE_QUOTATIONS)
-                .withFieldAsNull(ICSVParser.DEFAULT_NULL_FIELD_INDICATOR)
-                .withErrorLocale(Locale.getDefault())
-                .build();
-
-        try (
-                CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName(), tableProps)))
+        CSVParser parser = CsvUtils.getCsvParser(tableProps);
+        try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName(), tableProps)))
                         .withCSVParser(parser).build()) {
 
             Iterator<String[]> lineIterator = csvReader.iterator();

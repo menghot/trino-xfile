@@ -26,15 +26,18 @@ public class ParquetTypeUtils {
         if (logicalType != null) {
             if (logicalType instanceof LogicalTypeAnnotation.ListLogicalTypeAnnotation) {
                 // Parquet LIST contains a repeated group field with a single element
-                // e.g., repeated group list { element: INT32; }
+                // optional group my_list (LIST) {
+                //     repeated int32 element;
+                // }
                 org.apache.parquet.schema.Type elementType = groupType.getType(0);
-                if (elementType.isRepetition(org.apache.parquet.schema.Type.Repetition.REPEATED)) {
+                if (elementType.isPrimitive()) {
                     return new ArrayType(convertParquetTypeToTrino(elementType));
+                } else {
+                    // Sometimes list is wrapped in a middle group
+                    GroupType listWrapper = elementType.asGroupType();
+                    org.apache.parquet.schema.Type element = listWrapper.getType(0);
+                    return new ArrayType(convertParquetTypeToTrino(element));
                 }
-                // Sometimes list is wrapped in a middle group
-                GroupType listWrapper = groupType.getType(0).asGroupType();
-                org.apache.parquet.schema.Type element = listWrapper.getType(0);
-                return new ArrayType(convertParquetTypeToTrino(element));
             }
 
             if (logicalType instanceof LogicalTypeAnnotation.MapLogicalTypeAnnotation) {

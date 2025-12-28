@@ -93,7 +93,7 @@ public final class ParquetTypeUtils
                 // The group has only one child, it is middle group, it should be a standard 3-level list
                 return getArrayElementColumn(groupColumnIO.getChild(0));
             } else {
-                // The group has 2 or more children, it should be a ROW Type
+                // The group has 2 or more children, it should be a ROW Type in trino
                 return groupColumnIO;
             }
         }

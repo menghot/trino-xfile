@@ -23,11 +23,10 @@ import org.apache.parquet.schema.MessageType;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.trino.plugin.xfile.parquet.ParquetTypeUtils.convertParquetTypeToTrino;
+import static io.trino.plugin.xfile.parquet.ParquetTypeConverterUtils.convertParquetTypeToTrino;
 
 public class XFileTableMetadataUtils {
 

@@ -1,5 +1,6 @@
 package io.trino.plugin.xfile.parquet;
 
+import io.trino.spi.TrinoException;
 import io.trino.spi.type.*;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -8,11 +9,14 @@ import org.apache.parquet.schema.PrimitiveType;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ParquetTypeUtils {
+import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
+import static java.lang.String.format;
+
+public class ParquetTypeConverterUtils {
 
     private static final TypeOperators defaultTypeOperators = new TypeOperators();
 
-    private ParquetTypeUtils() {
+    private ParquetTypeConverterUtils() {
     }
 
     public static Type convertParquetTypeToTrino(org.apache.parquet.schema.Type type) {
@@ -26,18 +30,33 @@ public class ParquetTypeUtils {
         if (logicalType != null) {
             if (logicalType instanceof LogicalTypeAnnotation.ListLogicalTypeAnnotation) {
                 // Parquet LIST contains a repeated group field with a single element
-                // optional group my_list (LIST) {
-                //     repeated int32 element;
-                // }
+
                 // https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists
                 org.apache.parquet.schema.Type elementType = groupType.getType(0);
-                if (elementType.isPrimitive()) {
-                    return new ArrayType(convertParquetTypeToTrino(elementType));
-                } else {
-                    // Sometimes list is wrapped in a middle group
-                    GroupType listWrapper = elementType.asGroupType();
-                    org.apache.parquet.schema.Type element = listWrapper.getType(0);
-                    return new ArrayType(convertParquetTypeToTrino(element));
+                if (elementType.isRepetition(org.apache.parquet.schema.Type.Repetition.REPEATED)) {
+                    // optional group my_list (LIST) {
+                    //     repeated int32 element;
+                    // }
+                    if (elementType.isPrimitive()) {
+                        return new ArrayType(convertParquetTypeToTrino(elementType));
+                    } else {
+                        // Sometimes list is wrapped in a middle group
+                        GroupType listWrapper = elementType.asGroupType();
+                        if(listWrapper.getLogicalTypeAnnotation() != null) {
+                            // Element of list are List or Map
+                            return new ArrayType(convertParquetTypeToTrino(listWrapper));
+                        } else {
+                            if (listWrapper.getFieldCount() == 0) {
+                                throw new TrinoException(NOT_SUPPORTED, format("Parquet group name: %s has no children", listWrapper.getName()));
+                            } else if (listWrapper.getFieldCount() == 1) {
+                                org.apache.parquet.schema.Type element = listWrapper.getType(0);
+                                return new ArrayType(convertParquetTypeToTrino(element));
+                            } else {
+                                // Element of list are Row
+                                return new ArrayType(convertParquetTypeToTrino(listWrapper));
+                            }
+                        }
+                    }
                 }
             }
 

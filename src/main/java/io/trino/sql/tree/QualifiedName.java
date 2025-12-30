@@ -80,6 +80,8 @@ public class QualifiedName
 
     private static String mapIdentifier(Identifier identifier)
     {
+        //XFILE HACKS
+        //return identifier.getValue().toLowerCase(ENGLISH);
         return identifier.getValue();
     }
 

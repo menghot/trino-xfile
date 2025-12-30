@@ -93,6 +93,8 @@ public final class MetadataUtil
         if (value == null) {
             throw new NullPointerException(format("%s is null", name));
         }
+
+        // XFILE HACKS  ignore checking if values contains "/"
         if (!value.contains("/")) {
             checkArgument(value.equals(value.toLowerCase(ENGLISH)), "%s is not lowercase: %s", name, value);
         }

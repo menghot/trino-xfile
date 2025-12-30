@@ -33,6 +33,9 @@ public final class SchemaTableName
     @JsonCreator
     public SchemaTableName(@JsonProperty("schema") String schemaName, @JsonProperty("table") String tableName)
     {
+//        this.schemaName = checkNotEmpty(schemaName, "schemaName").toLowerCase(ENGLISH);
+//        this.tableName = checkNotEmpty(tableName, "tableName").toLowerCase(ENGLISH);
+        // XFILE XFILE HACKS : remove toLowerCase convert
         this.schemaName = checkNotEmpty(schemaName, "schemaName");
         this.tableName = checkNotEmpty(tableName, "tableName");
     }

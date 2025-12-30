@@ -80,7 +80,7 @@ public class QualifiedName
 
     private static String mapIdentifier(Identifier identifier)
     {
-        //XFILE HACKS
+        //XFILE HACKS (trino-parser-xxx.jar)
         //return identifier.getValue().toLowerCase(ENGLISH);
         return identifier.getValue();
     }

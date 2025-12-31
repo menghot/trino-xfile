@@ -108,13 +108,13 @@
 
         <dependency>
             <groupId>io.trino</groupId>
-            <artifactId>trino-main</artifactId>
+            <artifactId>trino-cache</artifactId>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.trino</groupId>
-            <artifactId>trino-cache</artifactId>
+            <artifactId>trino-main</artifactId>
             <scope>provided</scope>
         </dependency>
 

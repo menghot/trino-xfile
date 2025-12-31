@@ -59,7 +59,7 @@ public class GroupProviderManager
     private final SecretsResolver secretsResolver;
     private Case groupCase = KEEP;
 
-    private NonKeyEvictableLoadingCache<String,Set<String>> groupCache;
+    private final NonKeyEvictableLoadingCache<String,Set<String>> groupCache;
 
     @Inject
     public GroupProviderManager(SecretsResolver secretsResolver)

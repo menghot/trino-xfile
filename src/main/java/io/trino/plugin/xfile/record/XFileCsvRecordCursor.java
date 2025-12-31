@@ -118,6 +118,13 @@ public class XFileCsvRecordCursor implements RecordCursor {
         if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_NUM.getName())) {
             return String.valueOf(currentRowNum);
         }
+
+        if (columnHandles.get(field).getOrdinalPosition() >= fields.length) {
+
+            throw new RuntimeException(String.format("File: %s, Row: %d, Invalid field index: %d, only %d fields provided",
+                    xFileSplit.uri(),  currentRowNum, columnHandles.get(field).getOrdinalPosition(), fields.length));
+        }
+
         return fields[columnHandles.get(field).getOrdinalPosition()].trim();
     }
 

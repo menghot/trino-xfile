@@ -67,7 +67,7 @@ public class GroupProviderManager
         this.secretsResolver = requireNonNull(secretsResolver, "secretsResolver is null");
         this.groupCache = buildNonEvictableCacheWithWeakInvalidateAll(
                 CacheBuilder.newBuilder()
-                        .expireAfterWrite(120, MINUTES),
+                        .expireAfterWrite(60, MINUTES),
                 CacheLoader.from(user -> {
                     Objects.requireNonNull(user, "user is null");
                     return findGroups(user);

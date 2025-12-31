@@ -16,6 +16,7 @@ package io.trino.plugin.xfile;
 import com.google.inject.Inject;
 import io.airlift.json.JsonCodec;
 import io.trino.filesystem.*;
+import io.trino.plugin.xfile.utils.CsvUtils;
 import io.trino.spi.StandardErrorCode;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ConnectorSession;
@@ -135,6 +136,8 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
             }
         }
 
+        CsvUtils.checkCsvTableColumnTypes(tableMetadata);
+
         xFileSchema.getTables().add(
                 new XFileTable(
                         tableMetadata.getTable().getTableName(),
@@ -187,7 +190,7 @@ public class XFileMetadataClientFileStoreImpl implements XFileMetadataClient {
     public FileIterator listFiles(ConnectorSession session, String path) {
         TrinoFileSystem fileSystem = trinoFileSystemFactory.create(session);
         try {
-            String filePath = path.replaceAll("#\\d+$", "");
+            String filePath = path.replaceAll("([#$]).*$", "");
             return fileSystem.listFiles(Location.of(filePath));
         } catch (IOException e) {
             throw new RuntimeException(e);

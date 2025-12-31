@@ -18,6 +18,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
+import io.trino.spi.StandardErrorCode;
+import io.trino.spi.TrinoException;
 import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
 
@@ -168,6 +170,10 @@ public class XFileMetadata
 
     @Override
     public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
+        if (tableMetadata.getTable().getTableName().endsWith("$files")) {
+            throw new RuntimeException("Table name can't ends with '$files'");
+        }
+
         xFileMetadataClient.createTable(session, tableMetadata, saveMode);
     }
 

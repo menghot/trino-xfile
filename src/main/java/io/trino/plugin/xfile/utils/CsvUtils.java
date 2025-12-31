@@ -8,6 +8,7 @@ import io.trino.plugin.xfile.XFileConnector;
 import io.trino.spi.StandardErrorCode;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ConnectorTableMetadata;
+import io.trino.spi.type.DecimalType;
 
 import java.util.Locale;
 import java.util.Map;
@@ -43,7 +44,8 @@ public class CsvUtils {
     public static void checkCsvTableColumnTypes(ConnectorTableMetadata tableMetadata) {
         if (tableMetadata.getTable().getTableName().endsWith(".csv") || "csv".equals(tableMetadata.getProperties().get(XFileConnector.TABLE_PROP_FILE_FORMAT))) {
             tableMetadata.getColumns().forEach(columnMetadata -> {
-                if (!CSV_SUPPORTED_TYPES.contains(columnMetadata.getType().getJavaType())) {
+                if (columnMetadata.getType() instanceof DecimalType ||
+                        !CSV_SUPPORTED_TYPES.contains(columnMetadata.getType().getJavaType())) {
                     throw new TrinoException(StandardErrorCode.INVALID_COLUMN_PROPERTY,
                             String.format("Column :%s is not supported the type: %s, CSV table support bool, bigint, double, varchar", columnMetadata.getName(), columnMetadata.getType()));
                 }

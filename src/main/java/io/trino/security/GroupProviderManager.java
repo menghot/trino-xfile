@@ -22,7 +22,6 @@ import com.google.inject.Inject;
 import io.airlift.configuration.secrets.SecretsResolver;
 import io.airlift.log.Logger;
 import io.trino.cache.NonKeyEvictableLoadingCache;
-import io.trino.spi.TrinoException;
 import io.trino.spi.classloader.ThreadContextClassLoader;
 import io.trino.spi.security.GroupProvider;
 import io.trino.spi.security.GroupProviderFactory;
@@ -60,13 +59,13 @@ public class GroupProviderManager
     private final SecretsResolver secretsResolver;
     private Case groupCase = KEEP;
 
-    private NonKeyEvictableLoadingCache<String,Set<String>> ldapGroupCache;
+    private NonKeyEvictableLoadingCache<String,Set<String>> groupCache;
 
     @Inject
     public GroupProviderManager(SecretsResolver secretsResolver)
     {
         this.secretsResolver = requireNonNull(secretsResolver, "secretsResolver is null");
-        this.ldapGroupCache = buildNonEvictableCacheWithWeakInvalidateAll(
+        this.groupCache = buildNonEvictableCacheWithWeakInvalidateAll(
                 CacheBuilder.newBuilder()
                         .expireAfterWrite(120, MINUTES),
                 CacheLoader.from(user -> {
@@ -160,7 +159,7 @@ public class GroupProviderManager
     {
         requireNonNull(user, "user is null");
         try {
-          return ldapGroupCache.get(user);
+          return groupCache.get(user);
         } catch (ExecutionException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

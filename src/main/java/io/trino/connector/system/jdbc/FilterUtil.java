@@ -62,6 +62,6 @@ public final class FilterUtil
 //                // TODO (https://github.com/trinodb/trino/issues/17) Currently all object names are lowercase in Trino
 //                !candidate.equals(candidate.toLowerCase(ENGLISH));
         // XFILE HACKS
-        return candidate.equals("") ;
+        return candidate.isEmpty();
     }
 }

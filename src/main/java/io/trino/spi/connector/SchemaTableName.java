@@ -36,8 +36,12 @@ public final class SchemaTableName
 //        this.schemaName = checkNotEmpty(schemaName, "schemaName").toLowerCase(ENGLISH);
 //        this.tableName = checkNotEmpty(tableName, "tableName").toLowerCase(ENGLISH);
         // XFILE XFILE HACKS : remove toLowerCase convert (trino-spi-xxx.jar)
-        this.schemaName = checkNotEmpty(schemaName, "schemaName");
-        this.tableName = checkNotEmpty(tableName, "tableName");
+        this.schemaName = checkNotEmpty(schemaName, "schemaName").toLowerCase(ENGLISH);
+        if (tableName.contains("/")) {
+            this.tableName = checkNotEmpty(tableName, "tableName");
+        } else {
+            this.tableName = checkNotEmpty(tableName, "tableName").toLowerCase(ENGLISH);
+        }
     }
 
     public static SchemaTableName schemaTableName(String schemaName, String tableName)

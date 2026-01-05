@@ -82,7 +82,10 @@ public class QualifiedName
     {
         //XFILE HACKS (trino-parser-xxx.jar)
         //return identifier.getValue().toLowerCase(ENGLISH);
-        return identifier.getValue();
+        if (identifier.getValue().contains("/")) {
+           return identifier.getValue();
+        }
+        return identifier.getValue().toLowerCase(ENGLISH);
     }
 
     public List<String> getParts()

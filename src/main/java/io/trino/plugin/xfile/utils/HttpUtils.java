@@ -71,7 +71,7 @@ public class HttpUtils {
                     HttpUtils.parseQuery((String) properties.getOrDefault(XFileInternalColumn.HTTP_HEADERS.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_BODY))),
                     HttpUtils.parseQuery((String) properties.getOrDefault(XFileInternalColumn.HTTP_PARAMS.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_PARAMS))),
                     (String) properties.getOrDefault(XFileInternalColumn.HTTP_BODY.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_BODY)),
-                    (String) properties.getOrDefault(XFileInternalColumn.HTTP_PROXY_HOST.getName(), properties.getOrDefault(XFileConnector.TABLE_PROP_HTTP_PROXY_HOST, "GET")),
+                    (String) properties.getOrDefault(XFileInternalColumn.HTTP_PROXY_HOST.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_PROXY_HOST)),
                     Integer.parseInt((String) properties.getOrDefault(XFileInternalColumn.HTTP_PROXY_PORT.getName(), properties.getOrDefault(XFileConnector.TABLE_PROP_HTTP_PROXY_PORT,"80")))
             );
         } catch (Exception e) {

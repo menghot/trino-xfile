@@ -41,6 +41,14 @@ public class XFileConnector implements Connector {
     public static final String TABLE_PROP_CSV_SKIP_LAST_LINES = "csv-skip-last-lines";
     public static final String TABLE_PROP_CSV_SEPARATOR = "csv-separator";
 
+    public static final String TABLE_PROP_HTTP_URL = "http-url";
+    public static final String TABLE_PROP_HTTP_HEADERS = "http-headers";
+    public static final String TABLE_PROP_HTTP_BODY = "http-body";
+    public static final String TABLE_PROP_HTTP_METHOD = "http-method";
+    public static final String TABLE_PROP_HTTP_PARAMS = "http-params";
+    public static final String TABLE_PROP_HTTP_PROXY_HOST = "http-proxy-host";
+    public static final String TABLE_PROP_HTTP_PROXY_PORT = "http-proxy-port";
+
     private final LifeCycleManager lifeCycleManager;
     private final XFileMetadata metadata;
     private final XFileSplitManager splitManager;
@@ -120,6 +128,41 @@ public class XFileConnector implements Connector {
                 stringProperty(
                         TABLE_PROP_FILE_FILTER_REGEX,
                         "file filter regx",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_HTTP_URL,
+                        "http url",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_HTTP_HEADERS,
+                        "http headers",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_HTTP_BODY,
+                        "http body",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_HTTP_METHOD,
+                        "http method",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_HTTP_PARAMS,
+                        "http params",
+                        null,
+                        false),
+                stringProperty(
+                        TABLE_PROP_HTTP_PROXY_HOST,
+                        "http proxy host",
+                        null,
+                        false),
+                integerProperty(
+                        TABLE_PROP_HTTP_PROXY_PORT,
+                        "http proxy port",
                         null,
                         false)
         );

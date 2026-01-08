@@ -19,7 +19,11 @@ import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import io.trino.filesystem.TrinoFileSystem;
 import io.trino.plugin.xfile.XFileColumnHandle;
+import io.trino.plugin.xfile.XFileConnector;
+import io.trino.plugin.xfile.XFileInternalColumn;
 import io.trino.plugin.xfile.XFileSplit;
+import io.trino.plugin.xfile.utils.HttpUtils;
+import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.plugin.xfile.utils.XFileTrinoFileSystemUtils;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.type.Type;
@@ -39,13 +43,24 @@ public class XFileJsonRecordCursor implements RecordCursor {
 
     private final List<XFileColumnHandle> columnHandles;
     private final CountingInputStream countingInputStream;
+    private final XFileSplit xFileSplit;
 
     private String jsonText;
     private boolean readed = false;
+    private long currentRowNum = 0;
+    private String currentLine = null;
 
     public XFileJsonRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
-        InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
+        this.xFileSplit = xFileSplit;
+
+        InputStream is;
+        if (xFileSplit.properties().containsKey(XFileConnector.TABLE_PROP_HTTP_URL)) {
+            is = HttpUtils.submitHttpRequest(xFileSplit.properties());
+        } else {
+            is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
+        }
+
         countingInputStream = new CountingInputStream(is);
     }
 
@@ -83,6 +98,19 @@ public class XFileJsonRecordCursor implements RecordCursor {
     }
 
     private String getFieldValue(int field) {
+
+        if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.FILE_PATH.getName())) {
+            return xFileSplit.uri();
+        } else if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_NUM.getName())) {
+            return String.valueOf(1);
+        } else {
+            for (XFileInternalColumn col : XFileTableMetadataUtils.https) {
+                if (columnHandles.get(field).getColumnName().equals(col.getName())) {
+                    return String.valueOf(xFileSplit.properties().get(col.getName()));
+                }
+            }
+        }
+
         return jsonText;
     }
 

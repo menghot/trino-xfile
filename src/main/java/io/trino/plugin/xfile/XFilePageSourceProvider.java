@@ -87,9 +87,11 @@ public class XFilePageSourceProvider
                 throw new RuntimeException(e);
             }
         } else if (
-                "csv".equals(xFileSplit.properties().get(XFileConnector.TABLE_PROP_FILE_FORMAT)) ||
-                        xFileSplit.uri().matches(XFileConnector.FILE_TABLE_CSV_REGEX) ||
-                        xFileSplit.uri().endsWith(".json")) {
+                "csv".equals(xFileSplit.properties().get(XFileConnector.TABLE_PROP_FILE_FORMAT))
+                        || xFileSplit.uri().matches(XFileConnector.FILE_TABLE_CSV_REGEX)
+                        || xFileSplit.uri().endsWith(".json")
+                        || xFileSplit.properties().containsKey(XFileInternalColumn.HTTP_URL.getName())
+                        || xFileSplit.properties().containsKey(XFileConnector.TABLE_PROP_FILE_FORMAT)) {
             return new RecordPageSource(recordSetProvider.getRecordSet(transaction, session, xFileSplit, tableHandle, columns));
         }
 

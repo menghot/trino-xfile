@@ -16,6 +16,7 @@ package io.trino.plugin.xfile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import io.airlift.slice.Slice;
 import io.trino.filesystem.*;
 import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.spi.StandardErrorCode;
@@ -24,6 +25,7 @@ import io.trino.spi.connector.*;
 import io.trino.spi.security.TrinoPrincipal;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,6 +82,38 @@ public class XFileMetadata
         }
 
         return builder.build();
+    }
+
+    @Override
+    public Optional<ConstraintApplicationResult<ConnectorTableHandle>> applyFilter(ConnectorSession session, ConnectorTableHandle handle, Constraint constraint) {
+        XFileTableHandle xFileTableHandle = (XFileTableHandle) handle;
+        if (constraint.getSummary().getDomains().isPresent()) {
+            constraint.getSummary().getDomains().get().forEach((ch, domain) -> {
+                XFileColumnHandle columnHandle = (XFileColumnHandle) ch;
+                if (columnHandle.getColumnMetadata().isHidden()) {
+                    if (domain.isSingleValue()) {
+                        if (domain.getSingleValue() instanceof Slice s) {
+                            xFileTableHandle.getFilterMap().putIfAbsent(columnHandle.getColumnName(), s.toStringUtf8());
+
+                        }
+                    } else {
+                        List<String> values = new ArrayList<>();
+                        domain.getValues().getRanges().getOrderedRanges().iterator().forEachRemaining(r -> {
+                            if (r.isSingleValue()) {
+                                if (r.getSingleValue() instanceof Slice s) {
+                                    values.add(s.toStringUtf8());
+                                }
+                            }
+                            // more types support
+                        });
+                        xFileTableHandle.getFilterMap().putIfAbsent(columnHandle.getColumnName(), values);
+                    }
+                }
+            });
+        }
+
+        return ConnectorMetadata.super.applyFilter(session, xFileTableHandle, constraint);
+
     }
 
 

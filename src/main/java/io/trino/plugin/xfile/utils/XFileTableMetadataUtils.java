@@ -23,9 +23,12 @@ import org.apache.parquet.schema.MessageType;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import static io.trino.plugin.xfile.XFileInternalColumn.*;
 import static io.trino.plugin.xfile.parquet.ParquetTypeConverterUtils.convertParquetTypeToTrino;
 
 public class XFileTableMetadataUtils {
@@ -43,12 +46,23 @@ public class XFileTableMetadataUtils {
         return null;
     }
 
+   public static List<XFileInternalColumn> https = List.of(
+           ROW_TEXT, // 2
+           HTTP_URL,  // 3
+           HTTP_HEADERS,  // 4
+           HTTP_METHOD,  // 5
+           HTTP_BODY, // 6
+           HTTP_PARAMS, // 7
+           HTTP_PROXY_HOST, // 8
+           HTTP_PROXY_PORT // 9
+    );
+
 
     public static ConnectorTableMetadata getCsvTableMetadata(TrinoFileSystem trinoFileSystem, SchemaTableName tableName, Map<String, Object> tableProps) {
         ImmutableList.Builder<ColumnMetadata> listBuilder = ImmutableList.builder();
         CSVParser parser = CsvUtils.getCsvParser(tableProps);
         try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, tableName.getTableName(), tableProps)))
-                        .withCSVParser(parser).build()) {
+                .withCSVParser(parser).build()) {
 
             Iterator<String[]> lineIterator = csvReader.iterator();
             int skipRows = Integer.parseInt(tableProps.getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_FIRST_LINES, "0").toString());
@@ -83,19 +97,26 @@ public class XFileTableMetadataUtils {
 
 
     public static void configHiddenColumns(ImmutableList.Builder<ColumnMetadata> listBuilder) {
-        // __file_path__
-        ColumnMetadata.Builder filePathBuilder = ColumnMetadata.builder();
-        filePathBuilder.setHidden(true);
-        filePathBuilder.setName(XFileInternalColumn.FILE_PATH.getName());
-        filePathBuilder.setType(VarcharType.createUnboundedVarcharType());
-        listBuilder.add(filePathBuilder.build());
+        // __file_path__ // 0
+        listBuilder.add(ColumnMetadata.builder()
+                .setHidden(true)
+                .setName(XFileInternalColumn.FILE_PATH.getName())
+                .setType(VarcharType.createUnboundedVarcharType()).build());
 
-        // __row_num__
-        ColumnMetadata.Builder rowNumBuilder = ColumnMetadata.builder();
-        rowNumBuilder.setHidden(true);
-        rowNumBuilder.setName(XFileInternalColumn.ROW_NUM.getName());
-        rowNumBuilder.setType(BigintType.BIGINT);
-        listBuilder.add(rowNumBuilder.build());
+        // __row_num__ // 1
+        listBuilder.add(ColumnMetadata.builder()
+                .setHidden(true)
+                .setName(XFileInternalColumn.ROW_NUM.getName())
+                .setType(BigintType.BIGINT)
+                .build());
+
+        https.forEach(row -> {
+            listBuilder.add(ColumnMetadata.builder()
+                    .setHidden(true)
+                    .setName(row.getName())
+                    .setType(VarcharType.createUnboundedVarcharType())
+                    .build());
+        });
     }
 
 

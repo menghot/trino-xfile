@@ -23,18 +23,24 @@ import io.trino.plugin.xfile.XFileColumnHandle;
 import io.trino.plugin.xfile.XFileConnector;
 import io.trino.plugin.xfile.XFileInternalColumn;
 import io.trino.plugin.xfile.XFileSplit;
+import io.trino.plugin.xfile.utils.HttpUtils;
+import io.trino.plugin.xfile.utils.XFileTableMetadataUtils;
 import io.trino.plugin.xfile.utils.XFileTrinoFileSystemUtils;
 import io.trino.spi.connector.RecordCursor;
 import io.trino.spi.type.DecimalType;
 import io.trino.spi.type.Type;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Iterator;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -47,40 +53,45 @@ import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
 public class XFileCsvRecordCursor implements RecordCursor {
 
     private final List<XFileColumnHandle> columnHandles;
-    private final Iterator<String[]> lineIterator;
+    private final LineIterator lineIterator;
     private final CountingInputStream countingInputStream;
     private final XFileSplit xFileSplit;
-    private final CSVReader csvReader;
+    private final CSVParser parser;
 
     // Store field values for CSV row
     private String[] fields;
     private long currentRowNum = 0;
+    private String currentLine = null;
     private int skipLastLines = 0;
 
     public XFileCsvRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
-        this.xFileSplit  = xFileSplit;
-        InputStream is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
-        countingInputStream = new CountingInputStream(is);
-        CSVParser parser = getCsvParser(xFileSplit.properties());
-        csvReader = new CSVReaderBuilder(new InputStreamReader(countingInputStream))
-            .withCSVParser(parser)
-            .build();
+        this.xFileSplit = xFileSplit;
 
-        lineIterator = csvReader.iterator();
-        int skipRows = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_FIRST_LINES, "0").toString()) ;
+        InputStream is;
+        if (xFileSplit.properties().containsKey(XFileConnector.TABLE_PROP_HTTP_URL)) {
+            is = HttpUtils.submitHttpRequest(xFileSplit.properties());
+        } else {
+            is = XFileTrinoFileSystemUtils.readInputStream(trinoFileSystem, xFileSplit.uri(), xFileSplit.properties());
+        }
+
+
+        countingInputStream = new CountingInputStream(is);
+        parser = getCsvParser(xFileSplit.properties());
+
+        lineIterator = IOUtils.lineIterator(is, StandardCharsets.UTF_8);
+        int skipRows = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_FIRST_LINES, "0").toString());
         while (lineIterator.hasNext() && skipRows > 0) {
             lineIterator.next();
             skipRows--;
-            currentRowNum ++;
+            currentRowNum++;
         }
 
         skipLastLines = Integer.parseInt(xFileSplit.properties().getOrDefault(XFileConnector.TABLE_PROP_CSV_SKIP_LAST_LINES, "0").toString());
-        if(skipLastLines > 1) {
+        if (skipLastLines > 1) {
             throw new UnsupportedOperationException("CSV skip last lines > 1 are not supported");
         }
     }
-
 
 
     @Override
@@ -102,27 +113,38 @@ public class XFileCsvRecordCursor implements RecordCursor {
     @Override
     public boolean advanceNextPosition() {
         if (lineIterator.hasNext()) {
-            fields = lineIterator.next();
-            currentRowNum ++;
-            return skipLastLines !=1 || lineIterator.hasNext();
+            currentLine = lineIterator.next();
+            try {
+                fields = parser.parseLine(currentLine);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            currentRowNum++;
+            return skipLastLines != 1 || lineIterator.hasNext();
         }
         return false;
     }
 
     private String getFieldValue(int field) {
         checkState(fields != null, "Dataset has not been advanced yet");
-        if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.FILE_PATH.getName())) {
-            return xFileSplit.uri();
-        }
-
-        if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_NUM.getName())) {
-            return String.valueOf(currentRowNum);
-        }
 
         if (columnHandles.get(field).getOrdinalPosition() >= fields.length) {
+            if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.FILE_PATH.getName())) {
+                return xFileSplit.uri();
+            } else if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_NUM.getName())) {
+                return String.valueOf(currentRowNum);
+            } else if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_TEXT.getName())) {
+                return String.valueOf(currentLine);
+            } else {
+                for (XFileInternalColumn col : XFileTableMetadataUtils.https) {
+                    if (columnHandles.get(field).getColumnName().equals(col.getName())) {
+                        return String.valueOf(xFileSplit.properties().get(col.getName()));
+                    }
+                }
+            }
 
-            throw new RuntimeException(String.format("File: %s, Row: %d, Invalid field index: %d, only %d fields provided",
-                    xFileSplit.uri(),  currentRowNum, columnHandles.get(field).getOrdinalPosition(), fields.length));
+            throw new RuntimeException(String.format("File: %s, Row number: %d, Invalid field index: %d, only %d fields provided, row: %s",
+                    xFileSplit.uri(), currentRowNum, columnHandles.get(field).getOrdinalPosition(), fields.length, currentLine));
         }
 
         return fields[columnHandles.get(field).getOrdinalPosition()].trim();
@@ -175,6 +197,6 @@ public class XFileCsvRecordCursor implements RecordCursor {
     @Override
     public void close() {
         IOUtils.closeQuietly(countingInputStream);
-        IOUtils.closeQuietly(csvReader);
+        IOUtils.closeQuietly(lineIterator);
     }
 }

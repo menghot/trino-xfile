@@ -75,8 +75,10 @@ public class XFileSplitManager
             String fileFilterRegx = table.getProperties()
                     .getOrDefault(XFileConnector.TABLE_PROP_FILE_FILTER_REGEX, XFileConnector.FILE_FILTER_REGEX).toString();
 
-            if (table.getName().matches(fileFilterRegx) || properties.containsKey(XFileConnector.TABLE_PROP_HTTP_URL)) {
+            if (table.getName().matches(fileFilterRegx) ) {
                 splits.add(new XFileSplit(table.getName(), properties));
+            } else if (properties.containsKey(XFileConnector.TABLE_PROP_HTTP_URL)) {
+                splits.add(new XFileSplit((String) properties.get(XFileConnector.TABLE_PROP_HTTP_URL), properties));
             } else {
                 // Folder as table, e.g. s3://metastore/example-csv
                 FileIterator fileIterator = xFileMetadataClient.listFiles(session, table.getName());

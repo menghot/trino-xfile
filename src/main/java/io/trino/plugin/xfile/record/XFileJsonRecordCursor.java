@@ -46,9 +46,7 @@ public class XFileJsonRecordCursor implements RecordCursor {
     private final XFileSplit xFileSplit;
 
     private String jsonText;
-    private boolean readed = false;
-    private long currentRowNum = 0;
-    private String currentLine = null;
+    private boolean read = false;
 
     public XFileJsonRecordCursor(List<XFileColumnHandle> columnHandles, XFileSplit xFileSplit, TrinoFileSystem trinoFileSystem) {
         this.columnHandles = columnHandles;
@@ -83,8 +81,8 @@ public class XFileJsonRecordCursor implements RecordCursor {
     @Override
     public boolean advanceNextPosition() {
 
-        if (!readed) {
-            readed = true;
+        if (!read) {
+            read = true;
             try {
                 // Read file as a json string
                 jsonText = IOUtils.toString(countingInputStream, StandardCharsets.UTF_8);
@@ -103,7 +101,9 @@ public class XFileJsonRecordCursor implements RecordCursor {
             return xFileSplit.uri();
         } else if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_NUM.getName())) {
             return String.valueOf(1);
-        } else {
+        } else if (columnHandles.get(field).getColumnName().equals(XFileInternalColumn.ROW_TEXT.getName())) {
+            return jsonText;
+        }  else {
             for (XFileInternalColumn col : XFileTableMetadataUtils.https) {
                 if (columnHandles.get(field).getColumnName().equals(col.getName())) {
                     return String.valueOf(xFileSplit.properties().get(col.getName()));

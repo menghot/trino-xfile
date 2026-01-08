@@ -32,13 +32,13 @@ public class HttpUtils {
             int proxyPort) throws Exception {
 
         HttpClient client;
-        if(proxyHost != null && proxyPort > 0) {
-            client = httpClients.putIfAbsent(proxyHost + proxyPort, HttpClient.newBuilder()
+        if (proxyHost != null && proxyPort > 0) {
+            client = httpClients.computeIfAbsent(proxyHost + proxyPort, k -> HttpClient.newBuilder()
                     .proxy(ProxySelector.of(new InetSocketAddress(proxyHost, proxyPort)))
                     .version(HttpClient.Version.HTTP_2)
                     .build());
         } else {
-            client = httpClients.putIfAbsent(proxyHost + proxyPort, HttpClient.newBuilder()
+            client = httpClients.computeIfAbsent("__no_proxy__", k -> HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
                     .build());
         }
@@ -72,7 +72,7 @@ public class HttpUtils {
                     HttpUtils.parseQuery((String) properties.getOrDefault(XFileInternalColumn.HTTP_PARAMS.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_PARAMS))),
                     (String) properties.getOrDefault(XFileInternalColumn.HTTP_BODY.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_BODY)),
                     (String) properties.getOrDefault(XFileInternalColumn.HTTP_PROXY_HOST.getName(), properties.get(XFileConnector.TABLE_PROP_HTTP_PROXY_HOST)),
-                    Integer.parseInt((String) properties.getOrDefault(XFileInternalColumn.HTTP_PROXY_PORT.getName(), properties.getOrDefault(XFileConnector.TABLE_PROP_HTTP_PROXY_PORT,"80")))
+                    Integer.parseInt((String) properties.getOrDefault(XFileInternalColumn.HTTP_PROXY_PORT.getName(), String.valueOf(properties.getOrDefault(XFileConnector.TABLE_PROP_HTTP_PROXY_PORT,"80"))))
             );
         } catch (Exception e) {
             throw new RuntimeException(e);
